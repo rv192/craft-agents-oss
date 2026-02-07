@@ -36,6 +36,7 @@ export interface StoredConfig {
   authType?: AuthType;
   anthropicBaseUrl?: string;  // Custom Anthropic API base URL (for third-party compatible APIs)
   customModel?: string;  // Custom model ID override (for third-party APIs like OpenRouter, Ollama)
+  language?: string;
   workspaces: Workspace[];
   activeWorkspaceId: string | null;
   activeSessionId: string | null;  // Currently active session (primary scope)
@@ -229,6 +230,18 @@ export function setModel(model: string): void {
   const config = loadStoredConfig();
   if (!config) return;
   config.model = model;
+  saveConfig(config);
+}
+
+export function getAppLanguage(): string | null {
+  const config = loadStoredConfig();
+  return config?.language ?? null;
+}
+
+export function setAppLanguage(language: string): void {
+  const config = loadStoredConfig();
+  if (!config) return;
+  config.language = language;
   saveConfig(config);
 }
 

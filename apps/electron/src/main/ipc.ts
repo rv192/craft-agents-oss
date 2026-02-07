@@ -11,7 +11,7 @@ import { WindowManager } from './window-manager'
 import { registerOnboardingHandlers } from './onboarding'
 import { IPC_CHANNELS, type FileAttachment, type StoredAttachment, type AuthType, type ApiSetupInfo, type SendMessageOptions } from '../shared/types'
 import { readFileAttachment, perf, validateImageForClaudeAPI, IMAGE_LIMITS } from '@craft-agent/shared/utils'
-import { getAuthType, setAuthType, getPreferencesPath, getCustomModel, setCustomModel, getModel, setModel, getSessionDraft, setSessionDraft, deleteSessionDraft, getAllSessionDrafts, getWorkspaceByNameOrId, addWorkspace, setActiveWorkspace, getAnthropicBaseUrl, setAnthropicBaseUrl, loadStoredConfig, saveConfig, resolveModelId, type Workspace, SUMMARIZATION_MODEL } from '@craft-agent/shared/config'
+import { getAuthType, setAuthType, getPreferencesPath, getCustomModel, setCustomModel, getModel, setModel, getSessionDraft, setSessionDraft, deleteSessionDraft, getAllSessionDrafts, getWorkspaceByNameOrId, addWorkspace, setActiveWorkspace, getAnthropicBaseUrl, setAnthropicBaseUrl, loadStoredConfig, saveConfig, getAppLanguage, setAppLanguage, type Workspace, SUMMARIZATION_MODEL } from '@craft-agent/shared/config'
 import { getSessionAttachmentsPath, validateSessionId } from '@craft-agent/shared/sessions'
 import { loadWorkspaceSources, getSourcesBySlugs, type LoadedSource } from '@craft-agent/shared/sources'
 import { isValidThinkingLevel } from '@craft-agent/shared/agent/thinking-levels'
@@ -197,6 +197,14 @@ export function registerIpcHandlers(sessionManager: SessionManager, windowManage
   // Close the calling window (triggers close event which may be intercepted)
   ipcMain.handle(IPC_CHANNELS.CLOSE_WINDOW, (event) => {
     windowManager.closeWindow(event.sender.id)
+  })
+
+  ipcMain.handle(IPC_CHANNELS.GET_APP_LANGUAGE, () => {
+    return getAppLanguage()
+  })
+
+  ipcMain.handle(IPC_CHANNELS.SET_APP_LANGUAGE, (_event, language: string) => {
+    setAppLanguage(language)
   })
 
   // Confirm close - force close the window (bypasses interception).
@@ -607,63 +615,42 @@ export function registerIpcHandlers(sessionManager: SessionManager, windowManage
           // Validate image for Claude API
           const validation = validateImageForClaudeAPI(decoded.length, imageSize.width, imageSize.height)
 
-          // For dimension errors, calculate resize instead of rejecting
-          // File size errors (>5MB) still reject since we can't fix those without significant quality loss
-          let shouldResize = validation.needsResize
-          let targetSize = validation.suggestedSize
-
-          if (!validation.valid && validation.errorCode === 'dimension_exceeded') {
-            // Image exceeds 8000px limit - calculate resize to fit within limits
-            const maxDim = IMAGE_LIMITS.MAX_DIMENSION
-            const scale = Math.min(maxDim / imageSize.width, maxDim / imageSize.height)
-            targetSize = {
-              width: Math.floor(imageSize.width * scale),
-              height: Math.floor(imageSize.height * scale),
-            }
-            shouldResize = true
-            ipcLog.info(`Image exceeds ${maxDim}px limit (${imageSize.width}×${imageSize.height}), will resize to ${targetSize.width}×${targetSize.height}`)
-          } else if (!validation.valid) {
-            // Other validation errors (e.g., file size > 5MB) - reject
+          if (!validation.valid) {
+            // Hard error - reject the image
             throw new Error(validation.error)
           }
 
-          // If resize is needed (either recommended or required), do it now
-          if (shouldResize && targetSize) {
-            ipcLog.info(`Resizing image from ${imageSize.width}×${imageSize.height} to ${targetSize.width}×${targetSize.height}`)
+          // If resize is recommended, do it now
+          if (validation.needsResize && validation.suggestedSize) {
+            ipcLog.info(`Resizing image from ${imageSize.width}×${imageSize.height} to ${validation.suggestedSize.width}×${validation.suggestedSize.height}`)
 
-            try {
-              const resized = image.resize({
-                width: targetSize.width,
-                height: targetSize.height,
-                quality: 'best',
-              })
+            const resized = image.resize({
+              width: validation.suggestedSize.width,
+              height: validation.suggestedSize.height,
+              quality: 'best',
+            })
 
-              // Get as PNG for best quality (or JPEG for photos to save space)
-              const isPhoto = attachment.mimeType === 'image/jpeg'
-              decoded = isPhoto ? resized.toJPEG(IMAGE_LIMITS.JPEG_QUALITY_HIGH) : resized.toPNG()
-              wasResized = true
+            // Get as PNG for best quality (or JPEG for photos to save space)
+            const isPhoto = attachment.mimeType === 'image/jpeg'
+            decoded = isPhoto ? resized.toJPEG(90) : resized.toPNG()
+            wasResized = true
+            finalSize = decoded.length
+
+            // Re-validate final size after resize (should be much smaller)
+            if (decoded.length > IMAGE_LIMITS.MAX_SIZE) {
+              // Even after resize it's too big - try more aggressive compression
+              decoded = resized.toJPEG(75)
               finalSize = decoded.length
-
-              // Re-validate final size after resize (should be much smaller)
               if (decoded.length > IMAGE_LIMITS.MAX_SIZE) {
-                // Even after resize it's too big - try more aggressive compression
-                decoded = resized.toJPEG(IMAGE_LIMITS.JPEG_QUALITY_FALLBACK)
-                finalSize = decoded.length
-                if (decoded.length > IMAGE_LIMITS.MAX_SIZE) {
-                  throw new Error(`Image still too large after resize (${(decoded.length / 1024 / 1024).toFixed(1)}MB). Please use a smaller image.`)
-                }
+                throw new Error(`Image still too large after resize (${(decoded.length / 1024 / 1024).toFixed(1)}MB). Please use a smaller image.`)
               }
-
-              ipcLog.info(`Image resized: ${attachment.size} → ${finalSize} bytes (${Math.round((1 - finalSize / attachment.size) * 100)}% reduction)`)
-
-              // Store resized base64 to return to renderer
-              // This is used when sending to Claude API instead of original large base64
-              resizedBase64 = decoded.toString('base64')
-            } catch (resizeError) {
-              ipcLog.error('Image resize failed:', resizeError)
-              const reason = resizeError instanceof Error ? resizeError.message : String(resizeError)
-              throw new Error(`Image too large (${imageSize.width}×${imageSize.height}) and automatic resize failed: ${reason}. Please manually resize it before attaching.`)
             }
+
+            ipcLog.info(`Image resized: ${attachment.size} → ${finalSize} bytes (${Math.round((1 - finalSize / attachment.size) * 100)}% reduction)`)
+
+            // Store resized base64 to return to renderer
+            // This is used when sending to Claude API instead of original large base64
+            resizedBase64 = decoded.toString('base64')
           }
         }
 
@@ -1329,7 +1316,7 @@ export function registerIpcHandlers(sessionManager: SessionManager, windowManage
         testModel = userModel
       } else if (!trimmedUrl || trimmedUrl.includes('openrouter.ai') || trimmedUrl.includes('ai-gateway.vercel.sh')) {
         // Anthropic, OpenRouter, and Vercel are all Anthropic-compatible — same model IDs
-        testModel = resolveModelId(SUMMARIZATION_MODEL)
+        testModel = SUMMARIZATION_MODEL
       } else {
         // Custom endpoint with no model specified — can't test without knowing the model
         return { success: false, error: 'Please specify a model for custom endpoints' }
@@ -1387,7 +1374,7 @@ export function registerIpcHandlers(sessionManager: SessionManager, windowManage
         lowerMsg.includes('tool use is not supported') ||
         (lowerMsg.includes('tool') && lowerMsg.includes('not') && lowerMsg.includes('support'))
       if (isToolSupportError) {
-        const displayModel = modelName?.trim() || resolveModelId(SUMMARIZATION_MODEL)
+        const displayModel = modelName?.trim() || SUMMARIZATION_MODEL
         return { success: false, error: `Model "${displayModel}" does not support tool/function calling. Craft Agent requires a model with tool support (e.g. Claude, GPT-4, Gemini).` }
       }
 
@@ -2024,16 +2011,16 @@ export function registerIpcHandlers(sessionManager: SessionManager, windowManage
   // Skills (Workspace-scoped)
   // ============================================================
 
-  // Get all skills for a workspace (and optionally project-level skills from workingDirectory)
-  ipcMain.handle(IPC_CHANNELS.SKILLS_GET, async (_event, workspaceId: string, workingDirectory?: string) => {
-    ipcLog.info(`SKILLS_GET: Loading skills for workspace: ${workspaceId}${workingDirectory ? `, workingDirectory: ${workingDirectory}` : ''}`)
+  // Get all skills for a workspace
+  ipcMain.handle(IPC_CHANNELS.SKILLS_GET, async (_event, workspaceId: string) => {
+    ipcLog.info(`SKILLS_GET: Loading skills for workspace: ${workspaceId}`)
     const workspace = getWorkspaceByNameOrId(workspaceId)
     if (!workspace) {
       ipcLog.error(`SKILLS_GET: Workspace not found: ${workspaceId}`)
       return []
     }
-    const { loadAllSkills } = await import('@craft-agent/shared/skills')
-    const skills = loadAllSkills(workspace.rootPath, workingDirectory)
+    const { loadWorkspaceSkills } = await import('@craft-agent/shared/skills')
+    const skills = loadWorkspaceSkills(workspace.rootPath)
     ipcLog.info(`SKILLS_GET: Loaded ${skills.length} skills from ${workspace.rootPath}`)
     return skills
   })
