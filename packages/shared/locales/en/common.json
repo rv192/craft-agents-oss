@@ -1,0 +1,210 @@
+{
+  "edit": "Edit",
+  "closeEsc": "Close (Esc)",
+  "loading": "Loading...",
+  "open": "Open",
+  "pathCopied": "Path copied to clipboard",
+  "unknownError": "Unknown error",
+  "undo": "Undo",
+  "clearSearch": "Clear search",
+  "menu": {
+    "openInNewWindow": "Open in New Window",
+    "learnMore": "Learn More",
+    "configureStatuses": "Configure Statuses",
+    "addSource": "Add Source",
+    "addSkill": "Add Skill",
+    "addNewLabel": "Add New Label",
+    "editLabels": "Edit Labels",
+    "deleteLabel": "Delete Label",
+    "editViews": "Edit Views",
+    "deleteView": "Delete View",
+    "learnMoreApis": "Learn More about APIs",
+    "learnMoreMcp": "Learn More about MCP",
+    "learnMoreLocalFolders": "Learn More about Local Folders",
+    "learnMoreSources": "Learn More about Sources",
+    "showInFinder": "Show in Finder",
+    "deleteSource": "Delete Source",
+    "deleteSkill": "Delete Skill",
+    "status": "Status",
+    "labels": "Labels",
+    "flag": "Flag",
+    "unflag": "Unflag",
+    "markAsUnread": "Mark as Unread",
+    "rename": "Rename",
+    "regenerateTitle": "Regenerate Title",
+    "copyPath": "Copy Path",
+    "delete": "Delete"
+  },
+  "sources": {
+    "add": "Add Source",
+    "type": {
+      "api": "API",
+      "mcp": "MCP",
+      "local": "Local",
+      "localFolder": "local folder"
+    },
+    "emptyTitle": "No sources configured.",
+    "emptyTitleWithType": "No {{type}} sources configured.",
+    "emptyDescription": "Sources connect your agent to external data — MCP servers, REST APIs, and local folders.",
+    "learnMore": "Learn more",
+    "addSource": "Add Source",
+    "addApi": {
+      "title": "Add API",
+      "placeholder": "What API would you like to connect?",
+      "example": "Connect to the OpenAI API"
+    },
+    "addMcp": {
+      "title": "Add MCP Server",
+      "placeholder": "What MCP server would you like to connect?",
+      "example": "Connect to Linear"
+    },
+    "addLocal": {
+      "title": "Add Local Folder",
+      "placeholder": "What folder would you like to connect?",
+      "example": "Connect to my Obsidian vault"
+    },
+    "addGeneric": {
+      "title": "Add Source",
+      "placeholder": "What would you like to connect?",
+      "example": "Connect to my Craft space"
+    },
+    "status": {
+      "needsAuth": "Auth Required",
+      "failed": "Disconnected",
+      "untested": "Not Tested",
+      "localDisabled": "Disabled"
+    }
+  },
+  "skills": {
+    "emptyTitle": "No skills configured",
+    "emptyDescription": "Skills are reusable instructions that teach your agent specialized behaviors.",
+    "learnMore": "Learn more",
+    "addSkill": "Add Skill"
+  },
+  "labelsMenu": {
+    "states": "States"
+  },
+  "navigation": {
+    "newChat": "New Chat",
+    "allChats": "All Chats",
+    "flagged": "Flagged",
+    "status": "Status",
+    "labels": "Labels",
+    "sources": "Sources",
+    "skills": "Skills",
+    "settings": "Settings",
+    "apis": "APIs",
+    "mcps": "MCPs",
+    "localFolders": "Local Folders",
+    "helpDocs": "Help & Documentation",
+    "allDocumentation": "All Documentation",
+    "permissions": "Permissions"
+  },
+  "filters": {
+    "filterChats": "Filter Chats",
+    "clear": "Clear",
+    "searchPlaceholder": "Search statuses & labels...",
+    "statuses": "Statuses",
+    "labels": "Labels",
+    "search": "Search",
+    "noLabelsConfigured": "No labels configured",
+    "noMatchingFilters": "No matching statuses or labels"
+  },
+  "filterMode": {
+    "include": "Include",
+    "exclude": "Exclude",
+    "remove": "Clear"
+  },
+  "actions": {
+    "save": "Save",
+    "revert": "Revert",
+    "editFile": "Edit File"
+  },
+  "panels": {
+    "filesComingSoon": "Files panel - Coming soon",
+    "historyComingSoon": "History panel - Coming soon"
+  },
+  "fileViewer": {
+    "emptyTitle": "No file selected",
+    "emptyDescription": "Click a file path in the chat to view it here",
+    "loading": "Loading content...",
+    "errorTitle": "Error loading file"
+  },
+  "toc": {
+    "empty": "No headings"
+  },
+  "info": {
+    "errorLoading": "Error loading content",
+    "authRequired": "Authenticate with this source to view available data",
+    "sourceNotFound": "Source not found",
+    "skillNotFound": "Skill not found"
+  },
+  "sourceInfo": {
+    "disabledTitle": "Source Disabled",
+    "disabledDescription": "Local MCP servers are disabled in Settings > Advanced. Enable them to use this source.",
+    "deletedToast": "Deleted source: {{name}}",
+    "deleteFailed": "Failed to delete source",
+    "connectionTitle": "Connection",
+    "connectionLocalCommand": "Local command that spawns this MCP server.",
+    "connectionServerUrl": "Server URL and connection status.",
+    "connectionApiBaseUrl": "Base URL for API requests.",
+    "connectionLocalPath": "Filesystem path for this source.",
+    "connectionDetails": "Connection details.",
+    "permissionsTitle": "Permissions",
+    "permissionsMcp": "Tool patterns allowed in Explore mode.",
+    "permissionsApi": "API endpoints allowed in Explore mode.",
+    "permissionsLocal": "Access rules for Explore mode.",
+    "toolsTitle": "Tools",
+    "toolsDescription": "Operations exposed by this server.",
+    "documentationTitle": "Documentation",
+    "documentationDescription": "Context and guidelines for the agent.",
+    "typeLabel": "Type",
+    "urlLabel": "URL",
+    "lastTestedLabel": "Last Tested"
+  },
+  "skillInfo": {
+    "metadataTitle": "Metadata",
+    "deletedToast": "Deleted skill: {{name}}",
+    "deleteFailed": "Failed to delete skill",
+    "slugLabel": "Slug",
+    "nameLabel": "Name",
+    "descriptionLabel": "Description",
+    "locationLabel": "Location",
+    "permissionModesTitle": "Permission Modes",
+    "permissionModesDescription": "How \"Always Allowed Tools\" interacts with permission modes:",
+    "permissionModeExplore": "Explore",
+    "permissionModeAsk": "Ask to Edit",
+    "permissionModeAuto": "Auto",
+    "permissionBlocked": "Blocked — write tools blocked regardless",
+    "permissionAutoApproved": "Auto-approved — no prompts for allowed tools",
+    "permissionNoEffect": "No effect — all tools already auto-approved",
+    "instructionsTitle": "Instructions",
+    "noInstructions": "No instructions provided."
+  },
+  "table": {
+    "searchPlaceholder": "Search..."
+  },
+  "permissionsTable": {
+    "access": "Access",
+    "type": "Type",
+    "pattern": "Pattern",
+    "comment": "Comment",
+    "searchPlaceholder": "Search patterns...",
+    "empty": "No permissions configured",
+    "fullscreen": "View Fullscreen",
+    "patternCopied": "Pattern copied to clipboard",
+    "patternCopyFailed": "Failed to copy pattern",
+    "ruleCount_one": "{{count}} rule",
+    "ruleCount_other": "{{count}} rules"
+  },
+  "time": {
+    "never": "Never",
+    "justNow": "Just now",
+    "minutesAgo_one": "{{count}} minute ago",
+    "minutesAgo_other": "{{count}} minutes ago",
+    "hoursAgo_one": "{{count}} hour ago",
+    "hoursAgo_other": "{{count}} hours ago",
+    "daysAgo_one": "{{count}} day ago",
+    "daysAgo_other": "{{count}} days ago"
+  }
+}
