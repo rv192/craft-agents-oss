@@ -7,6 +7,7 @@ import { Provider as JotaiProvider } from 'jotai'
 import App from './App'
 import { ThemeProvider } from './context/ThemeContext'
 import { Toaster } from '@/components/ui/sonner'
+import './i18n-init'
 import './index.css'
 
 // Known-harmless console messages that should NOT be sent to Sentry.
