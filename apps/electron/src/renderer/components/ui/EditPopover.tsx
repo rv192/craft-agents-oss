@@ -15,6 +15,7 @@ import { Popover, PopoverTrigger, PopoverContent } from './popover'
 import { Button } from './button'
 import { cn } from '@/lib/utils'
 import { usePlatform } from '@craft-agent/ui'
+import { useTranslation } from 'react-i18next'
 import type { ContentBadge, Session, CreateSessionOptions } from '../../../shared/types'
 import { useActiveWorkspace, useAppShellContext, useSession } from '@/context/AppShellContext'
 import { useEscapeInterrupt } from '@/context/EscapeInterruptContext'
@@ -22,9 +23,9 @@ import { ChatDisplay } from '../app-shell/ChatDisplay'
 
 /** Rotating placeholders for compact mode input - short, action-oriented */
 const COMPACT_PLACEHOLDERS = [
-  'Just tell me what to change',
-  'Describe the update',
-  'What should I modify?',
+  'common:edit.compact.justTellMe',
+  'common:edit.compact.describeUpdate',
+  'common:edit.compact.whatModify',
 ]
 
 /**
@@ -644,14 +645,15 @@ export function EditPopover({
   inlineExecution = false,
 }: EditPopoverProps) {
   const { onOpenFile, onOpenUrl } = usePlatform()
+  const { t } = useTranslation(['common'])
   const workspace = useActiveWorkspace()
 
   // Build placeholder: for inline execution use rotating array, otherwise build descriptive string
   // overridePlaceholder allows contexts like add-source/add-skill to say "add" instead of "change"
   const placeholder = inlineExecution
-    ? COMPACT_PLACEHOLDERS
+    ? COMPACT_PLACEHOLDERS.map((key) => t(key))
     : (() => {
-        const basePlaceholder = overridePlaceholder ?? "Describe what you'd like to change..."
+        const basePlaceholder = overridePlaceholder ?? t('common:edit.placeholder')
         return example
           ? `${basePlaceholder.replace(/\.{3}$/, '')}, e.g., "${example}"`
           : basePlaceholder
@@ -663,13 +665,13 @@ export function EditPopover({
   const [internalOpen, setInternalOpen] = useState(false)
   const isControlled = controlledOpen !== undefined
   const open = isControlled ? controlledOpen : internalOpen
-  const setOpen = (value: boolean) => {
+  const setOpen = useCallback((value: boolean) => {
     if (isControlled) {
       controlledOnOpenChange?.(value)
     } else {
       setInternalOpen(value)
     }
-  }
+  }, [controlledOnOpenChange, isControlled])
 
   // Use App context for session management (same code path as main chat)
   const { onCreateSession, onSendMessage } = useAppShellContext()
@@ -947,7 +949,8 @@ export function EditPopover({
               }}
             >
               {/* Drag handle - floating overlay */}
-              <div
+              <button
+                type="button"
                 onMouseDown={handleDragStart}
                 className={cn(
                   "absolute top-0 left-1/2 -translate-x-1/2 z-50 px-4 py-2 cursor-grab rounded pointer-events-auto titlebar-no-drag",
@@ -955,7 +958,7 @@ export function EditPopover({
                 )}
               >
                 <GripHorizontal className="w-4 h-4 text-muted-foreground/30" />
-              </div>
+              </button>
 
               {/* Content area - always uses compact ChatDisplay */}
               <div className="flex-1 flex flex-col bg-foreground-2" style={{ height: '100%' }}>
@@ -973,7 +976,8 @@ export function EditPopover({
               </div>
 
               {/* Bottom-right resize handle - invisible hit area */}
-              <div
+              <button
+                type="button"
                 onMouseDown={handleResizeStart}
                 className="absolute -bottom-2 -right-2 w-6 h-6 cursor-nwse-resize pointer-events-auto z-50"
               />
