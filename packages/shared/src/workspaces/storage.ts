@@ -268,7 +268,8 @@ export function generateUniqueWorkspacePath(name: string, baseDir: string): stri
 export function createWorkspaceAtPath(
   rootPath: string,
   name: string,
-  defaults?: WorkspaceConfig['defaults']
+  defaults?: WorkspaceConfig['defaults'],
+  language?: string
 ): WorkspaceConfig {
   const now = Date.now();
   const slug = generateSlug(name);
@@ -307,11 +308,11 @@ export function createWorkspaceAtPath(
   saveWorkspaceConfig(rootPath, config);
 
   // Initialize status configuration with defaults
-  saveStatusConfig(rootPath, getDefaultStatusConfig());
+  saveStatusConfig(rootPath, getDefaultStatusConfig(language));
   ensureDefaultIconFiles(rootPath);
 
   // Initialize label configuration with defaults (two nested groups + valued labels)
-  saveLabelConfig(rootPath, getDefaultLabelConfig());
+  saveLabelConfig(rootPath, getDefaultLabelConfig(language));
 
   // Initialize plugin manifest for SDK integration (enables skills, commands, agents)
   ensurePluginManifest(rootPath, name);
