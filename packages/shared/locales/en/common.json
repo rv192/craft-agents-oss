@@ -116,9 +116,31 @@
     "remove": "Clear"
   },
   "actions": {
+    "cancel": "Cancel",
     "save": "Save",
     "revert": "Revert",
+    "reset": "Reset",
+    "delete": "Delete",
+    "done": "Done",
     "editFile": "Edit File"
+  },
+  "rename": {
+    "title": "Rename",
+    "placeholder": "Enter a name..."
+  },
+  "reset": {
+    "title": "Reset App",
+    "description": "This will permanently delete:",
+    "warningTitle": "Back up any important data first!",
+    "warningDescription": "This action cannot be undone.",
+    "confirmationPrompt": "To confirm, solve: {{a}} + {{b}} =",
+    "placeholder": "Enter answer",
+    "confirm": "Reset App",
+    "items": {
+      "workspaces": "All workspaces and their settings",
+      "credentials": "All credentials and API keys",
+      "preferences": "All preferences and session data"
+    }
   },
   "panels": {
     "filesComingSoon": "Files panel - Coming soon",

@@ -116,9 +116,31 @@
     "remove": "清除"
   },
   "actions": {
+    "cancel": "取消",
     "save": "保存",
     "revert": "撤销",
+    "reset": "重置",
+    "delete": "删除",
+    "done": "完成",
     "editFile": "编辑文件"
+  },
+  "rename": {
+    "title": "重命名",
+    "placeholder": "输入名称..."
+  },
+  "reset": {
+    "title": "重置应用",
+    "description": "这将永久删除：",
+    "warningTitle": "请先备份重要数据！",
+    "warningDescription": "此操作无法撤销。",
+    "confirmationPrompt": "确认请计算：{{a}} + {{b}} =",
+    "placeholder": "输入答案",
+    "confirm": "重置应用",
+    "items": {
+      "workspaces": "所有工作区及其设置",
+      "credentials": "所有凭据与 API Key",
+      "preferences": "所有偏好设置与会话数据"
+    }
   },
   "panels": {
     "filesComingSoon": "文件面板 - 即将推出",
