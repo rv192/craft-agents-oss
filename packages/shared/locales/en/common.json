@@ -228,5 +228,49 @@
     "hoursAgo_other": "{{count}} hours ago",
     "daysAgo_one": "{{count}} day ago",
     "daysAgo_other": "{{count}} days ago"
+  },
+  "sessionList": {
+    "date": {
+      "today": "Today",
+      "yesterday": "Yesterday"
+    },
+    "share": {
+      "openInBrowser": "Open in Browser",
+      "copyLink": "Copy Link",
+      "updateShare": "Update Share",
+      "stopSharing": "Stop Sharing",
+      "linkCopied": "Link copied to clipboard",
+      "updated": "Share updated",
+      "updateFailed": "Failed to update share",
+      "stopped": "Sharing stopped",
+      "stopFailed": "Failed to stop sharing"
+    },
+    "search": {
+      "noResultsInCurrentFilter": "No results in current filter",
+      "inCurrentView": "In Current View",
+      "otherConversations": "Other Conversations"
+    },
+    "rename": {
+      "title": "Rename conversation",
+      "placeholder": "Enter a name..."
+    }
+  },
+  "authBanner": {
+    "title": {
+      "mcpAuth": "Connection required",
+      "apiAuth": "API credentials required",
+      "error": "Something went wrong"
+    },
+    "description": {
+      "mcpAuth": "Connect to required services to continue.",
+      "apiAuth": "Enter API credentials to continue.",
+      "error": "Something went wrong. Tap to retry."
+    },
+    "cta": {
+      "connect": "Connect",
+      "addCredentials": "Add Credentials",
+      "retry": "Retry",
+      "continue": "Continue"
+    }
   }
 }

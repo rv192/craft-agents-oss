@@ -228,5 +228,49 @@
     "hoursAgo_other": "{{count}} 小时前",
     "daysAgo_one": "{{count}} 天前",
     "daysAgo_other": "{{count}} 天前"
+  },
+  "sessionList": {
+    "date": {
+      "today": "今天",
+      "yesterday": "昨天"
+    },
+    "share": {
+      "openInBrowser": "在浏览器中打开",
+      "copyLink": "复制链接",
+      "updateShare": "更新分享",
+      "stopSharing": "停止分享",
+      "linkCopied": "链接已复制到剪贴板",
+      "updated": "分享已更新",
+      "updateFailed": "更新分享失败",
+      "stopped": "已停止分享",
+      "stopFailed": "停止分享失败"
+    },
+    "search": {
+      "noResultsInCurrentFilter": "当前筛选条件下无结果",
+      "inCurrentView": "当前视图",
+      "otherConversations": "其他对话"
+    },
+    "rename": {
+      "title": "重命名对话",
+      "placeholder": "输入名称..."
+    }
+  },
+  "authBanner": {
+    "title": {
+      "mcpAuth": "需要连接",
+      "apiAuth": "需要 API 凭据",
+      "error": "出现错误"
+    },
+    "description": {
+      "mcpAuth": "请连接所需服务后继续。",
+      "apiAuth": "请输入 API 凭据后继续。",
+      "error": "出现错误，请重试。"
+    },
+    "cta": {
+      "connect": "连接",
+      "addCredentials": "添加凭据",
+      "retry": "重试",
+      "continue": "继续"
+    }
   }
 }
