@@ -286,6 +286,55 @@
     "outputFallback": "No output available yet",
     "loadFailed": "Failed to load task output"
   },
+  "appMenu": {
+    "aria": {
+      "craftMenu": "Craft menu",
+      "goBack": "Go back",
+      "goForward": "Go forward"
+    },
+    "file": {
+      "newChat": "New Chat",
+      "newWindow": "New Window"
+    },
+    "settings": {
+      "menu": "Settings",
+      "open": "Settings..."
+    },
+    "help": {
+      "menu": "Help",
+      "docs": "Help & Documentation",
+      "shortcuts": "Keyboard Shortcuts"
+    },
+    "debug": {
+      "menu": "Debug",
+      "checkUpdates": "Check for Updates",
+      "installUpdate": "Install Update",
+      "toggleDevtools": "Toggle DevTools"
+    },
+    "schema": {
+      "sections": {
+        "edit": "Edit",
+        "view": "View",
+        "window": "Window"
+      },
+      "items": {
+        "undo": "Undo",
+        "redo": "Redo",
+        "cut": "Cut",
+        "copy": "Copy",
+        "paste": "Paste",
+        "selectAll": "Select All",
+        "zoomIn": "Zoom In",
+        "zoomOut": "Zoom Out",
+        "resetZoom": "Reset Zoom",
+        "toggleFocusMode": "Toggle Focus Mode",
+        "toggleSidebar": "Toggle Sidebar",
+        "minimize": "Minimize",
+        "maximize": "Maximize"
+      }
+    },
+    "quit": "Quit Craft Agents"
+  },
   "rightSidebar": {
     "files": {
       "comingSoon": "Files panel - Coming soon",

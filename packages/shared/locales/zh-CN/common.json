@@ -286,6 +286,55 @@
     "outputFallback": "暂无输出",
     "loadFailed": "加载任务输出失败"
   },
+  "appMenu": {
+    "aria": {
+      "craftMenu": "Craft 菜单",
+      "goBack": "返回",
+      "goForward": "前进"
+    },
+    "file": {
+      "newChat": "新建对话",
+      "newWindow": "新建窗口"
+    },
+    "settings": {
+      "menu": "设置",
+      "open": "设置..."
+    },
+    "help": {
+      "menu": "帮助",
+      "docs": "帮助与文档",
+      "shortcuts": "快捷键"
+    },
+    "debug": {
+      "menu": "调试",
+      "checkUpdates": "检查更新",
+      "installUpdate": "安装更新",
+      "toggleDevtools": "切换开发者工具"
+    },
+    "schema": {
+      "sections": {
+        "edit": "编辑",
+        "view": "视图",
+        "window": "窗口"
+      },
+      "items": {
+        "undo": "撤销",
+        "redo": "重做",
+        "cut": "剪切",
+        "copy": "复制",
+        "paste": "粘贴",
+        "selectAll": "全选",
+        "zoomIn": "放大",
+        "zoomOut": "缩小",
+        "resetZoom": "重置缩放",
+        "toggleFocusMode": "切换专注模式",
+        "toggleSidebar": "切换侧边栏",
+        "minimize": "最小化",
+        "maximize": "最大化"
+      }
+    },
+    "quit": "退出 Craft Agents"
+  },
   "rightSidebar": {
     "files": {
       "comingSoon": "文件面板 - 即将上线",
