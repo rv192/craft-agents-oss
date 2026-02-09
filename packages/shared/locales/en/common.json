@@ -8,6 +8,8 @@
   "undo": "Undo",
   "clearSearch": "Clear search",
   "menu": {
+    "share": "Share",
+    "shared": "Shared",
     "openInNewWindow": "Open in New Window",
     "learnMore": "Learn More",
     "configureStatuses": "Configure Statuses",
@@ -248,11 +250,84 @@
     "search": {
       "noResultsInCurrentFilter": "No results in current filter",
       "inCurrentView": "In Current View",
-      "otherConversations": "Other Conversations"
+      "otherConversations": "Other Conversations",
+      "noConversations": "No conversations found",
+      "description": "Searched titles and message content",
+      "clear": "Clear search",
+      "sessionsAria": "Sessions"
+    },
+    "empty": {
+      "title": "No conversations yet",
+      "description": "Conversations with your agent appear here. Start one to get going.",
+      "action": "New Conversation"
     },
     "rename": {
       "title": "Rename conversation",
       "placeholder": "Enter a name..."
+    }
+  },
+  "skillsList": {
+    "empty": {
+      "title": "No skills configured",
+      "description": "Skills are reusable instructions that teach your agent specialized behaviors.",
+      "learnMore": "Learn more",
+      "addSkill": "Add Skill"
+    }
+  },
+  "taskActions": {
+    "title": "Click for task actions",
+    "type": {
+      "task": "Task",
+      "shell": "Shell"
+    },
+    "viewOutput": "View Output",
+    "stopTask": "Stop Task",
+    "overlayUnavailable": "Terminal overlay not available",
+    "outputFallback": "No output available yet",
+    "loadFailed": "Failed to load task output"
+  },
+  "rightSidebar": {
+    "files": {
+      "comingSoon": "Files panel - Coming soon",
+      "title": "Files",
+      "loading": "Loading...",
+      "empty": "Files attached or created by this chat will appear here.",
+      "directory": "Directory",
+      "clickExpand": "Click to expand",
+      "clickReveal": "Click to reveal",
+      "doubleClickOpen": "double-click to open"
+    },
+    "history": {
+      "comingSoon": "History panel - Coming soon"
+    },
+    "metadata": {
+      "title": "Chat Info",
+      "noSession": "No session selected",
+      "loading": "Loading session...",
+      "name": "Name",
+      "namePlaceholder": "Untitled",
+      "notes": "Notes",
+      "notesPlaceholder": "Add notes...",
+      "notesLoading": "Loading..."
+    }
+  },
+  "sessionMenu": {
+    "shareFailed": "Failed to share",
+    "titleRefresh": {
+      "success": "Title refreshed",
+      "failed": "Failed to refresh title"
+    }
+  },
+  "sessionSearch": {
+    "placeholder": "Search titles and content...",
+    "close": "Close search",
+    "loading": "Loading…",
+    "results": "{{count}} results"
+  },
+  "chatDisplay": {
+    "compactEmpty": {
+      "title": "What would you like to change?",
+      "description": "Just describe it — I'll handle the rest"
     }
   },
   "authBanner": {
@@ -272,5 +347,23 @@
       "retry": "Retry",
       "continue": "Continue"
     }
+  },
+  "mainContent": {
+    "empty": {
+      "noSourcesConfigured": "No sources configured",
+      "noSkillsConfigured": "No skills configured",
+      "noFlaggedConversations": "No flagged conversations",
+      "noConversationsYet": "No conversations yet",
+      "selectConversation": "Select a conversation to get started"
+    }
+  },
+  "permissionRequest": {
+    "title": "Permission Required",
+    "actions": {
+      "allow": "Allow",
+      "alwaysAllow": "Always Allow",
+      "deny": "Deny"
+    },
+    "tip": "\"Always Allow\" remembers this command for the session"
   }
 }

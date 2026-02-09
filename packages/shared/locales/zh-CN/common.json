@@ -8,6 +8,8 @@
   "undo": "撤销",
   "clearSearch": "清除搜索",
   "menu": {
+    "share": "分享",
+    "shared": "已分享",
     "openInNewWindow": "在新窗口打开",
     "learnMore": "了解更多",
     "configureStatuses": "配置状态",
@@ -248,11 +250,84 @@
     "search": {
       "noResultsInCurrentFilter": "当前筛选条件下无结果",
       "inCurrentView": "当前视图",
-      "otherConversations": "其他对话"
+      "otherConversations": "其他对话",
+      "noConversations": "未找到对话",
+      "description": "已搜索标题和消息内容",
+      "clear": "清除搜索",
+      "sessionsAria": "对话"
+    },
+    "empty": {
+      "title": "暂无对话",
+      "description": "与助手的对话会显示在这里，开始一个新的对话吧。",
+      "action": "新建对话"
     },
     "rename": {
       "title": "重命名对话",
       "placeholder": "输入名称..."
+    }
+  },
+  "skillsList": {
+    "empty": {
+      "title": "暂无技能配置",
+      "description": "技能是可复用的指令，帮助你的助手掌握特定能力。",
+      "learnMore": "了解更多",
+      "addSkill": "添加技能"
+    }
+  },
+  "taskActions": {
+    "title": "点击查看任务操作",
+    "type": {
+      "task": "任务",
+      "shell": "命令"
+    },
+    "viewOutput": "查看输出",
+    "stopTask": "停止任务",
+    "overlayUnavailable": "终端浮层不可用",
+    "outputFallback": "暂无输出",
+    "loadFailed": "加载任务输出失败"
+  },
+  "rightSidebar": {
+    "files": {
+      "comingSoon": "文件面板 - 即将上线",
+      "title": "文件",
+      "loading": "加载中...",
+      "empty": "此对话中附加或创建的文件会显示在这里。",
+      "directory": "文件夹",
+      "clickExpand": "点击展开",
+      "clickReveal": "点击查看",
+      "doubleClickOpen": "双击打开"
+    },
+    "history": {
+      "comingSoon": "历史面板 - 即将上线"
+    },
+    "metadata": {
+      "title": "对话信息",
+      "noSession": "未选择对话",
+      "loading": "正在加载对话...",
+      "name": "名称",
+      "namePlaceholder": "未命名",
+      "notes": "备注",
+      "notesPlaceholder": "添加备注...",
+      "notesLoading": "加载中..."
+    }
+  },
+  "sessionMenu": {
+    "shareFailed": "分享失败",
+    "titleRefresh": {
+      "success": "标题已刷新",
+      "failed": "刷新标题失败"
+    }
+  },
+  "sessionSearch": {
+    "placeholder": "搜索标题和内容...",
+    "close": "关闭搜索",
+    "loading": "加载中…",
+    "results": "{{count}} 条结果"
+  },
+  "chatDisplay": {
+    "compactEmpty": {
+      "title": "你想改什么？",
+      "description": "直接描述即可——剩下交给我"
     }
   },
   "authBanner": {
@@ -272,5 +347,23 @@
       "retry": "重试",
       "continue": "继续"
     }
+  },
+  "mainContent": {
+    "empty": {
+      "noSourcesConfigured": "暂无来源配置",
+      "noSkillsConfigured": "暂无技能配置",
+      "noFlaggedConversations": "暂无已标记对话",
+      "noConversationsYet": "暂无对话",
+      "selectConversation": "选择一个对话开始使用"
+    }
+  },
+  "permissionRequest": {
+    "title": "需要权限",
+    "actions": {
+      "allow": "允许",
+      "alwaysAllow": "始终允许",
+      "deny": "拒绝"
+    },
+    "tip": "\"始终允许\"会在当前会话中记住此命令"
   }
 }
