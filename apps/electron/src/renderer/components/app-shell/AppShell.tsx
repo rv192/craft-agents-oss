@@ -115,6 +115,8 @@ import { RightSidebar } from "./RightSidebar"
 import type { RichTextInputHandle } from "@/components/ui/rich-text-input"
 import { hasOpenOverlay } from "@/lib/overlay-detection"
 import { clearSourceIconCaches } from "@/lib/icon-cache"
+import { useTranslation } from 'react-i18next'
+import { getAppShellLabels } from './app-shell-labels'
 
 /**
  * AppShellProps - Minimal props interface for AppShell component
@@ -455,6 +457,9 @@ function AppShellContent({
   menuNewChatTrigger,
   isFocusedMode = false,
 }: AppShellProps) {
+  const { t } = useTranslation(['common'])
+  const i18nLabels = getAppShellLabels(t)
+
   // Destructure commonly used values from context
   // Note: sessions is NOT destructured here - we use sessionMetaMapAtom instead
   // to prevent closures from retaining the full messages array
@@ -1153,7 +1158,8 @@ function AppShellContent({
     : undefined
   React.useEffect(() => {
     if (!activeWorkspaceId) return
-    window.electronAPI.getSkills(activeWorkspaceId, activeSessionWorkingDirectory).then((loaded) => {
+    void activeSessionWorkingDirectory
+    window.electronAPI.getSkills(activeWorkspaceId).then((loaded) => {
       setSkills(loaded || [])
     }).catch(err => {
       console.error('[Chat] Failed to load skills:', err)
@@ -2209,34 +2215,34 @@ function AppShellContent({
                             </button>
                           </DropdownMenuTrigger>
                         </TooltipTrigger>
-                        <TooltipContent side="top">Help & Documentation</TooltipContent>
+                        <TooltipContent side="top">{i18nLabels.helpDocs}</TooltipContent>
                       </Tooltip>
                     </TooltipProvider>
                     <StyledDropdownMenuContent align="end" side="top" sideOffset={8}>
                       <StyledDropdownMenuItem onClick={() => window.electronAPI.openUrl(getDocUrl('sources'))}>
                         <DatabaseZap className="h-3.5 w-3.5" />
-                        <span className="flex-1">Sources</span>
+                        <span className="flex-1">{i18nLabels.sources}</span>
                         <ExternalLink className="h-3 w-3 text-muted-foreground" />
                       </StyledDropdownMenuItem>
                       <StyledDropdownMenuItem onClick={() => window.electronAPI.openUrl(getDocUrl('skills'))}>
                         <Zap className="h-3.5 w-3.5" />
-                        <span className="flex-1">Skills</span>
+                        <span className="flex-1">{i18nLabels.skills}</span>
                         <ExternalLink className="h-3 w-3 text-muted-foreground" />
                       </StyledDropdownMenuItem>
                       <StyledDropdownMenuItem onClick={() => window.electronAPI.openUrl(getDocUrl('statuses'))}>
                         <CheckCircle2 className="h-3.5 w-3.5" />
-                        <span className="flex-1">Statuses</span>
+                        <span className="flex-1">{i18nLabels.statuses}</span>
                         <ExternalLink className="h-3 w-3 text-muted-foreground" />
                       </StyledDropdownMenuItem>
                       <StyledDropdownMenuItem onClick={() => window.electronAPI.openUrl(getDocUrl('permissions'))}>
                         <Settings className="h-3.5 w-3.5" />
-                        <span className="flex-1">Permissions</span>
+                        <span className="flex-1">{i18nLabels.permissions}</span>
                         <ExternalLink className="h-3 w-3 text-muted-foreground" />
                       </StyledDropdownMenuItem>
                       <StyledDropdownMenuSeparator />
                       <StyledDropdownMenuItem onClick={() => window.electronAPI.openUrl('https://agents.craft.do/docs')}>
                         <ExternalLink className="h-3.5 w-3.5" />
-                        <span className="flex-1">All Documentation</span>
+                        <span className="flex-1">{i18nLabels.allDocumentation}</span>
                       </StyledDropdownMenuItem>
                     </StyledDropdownMenuContent>
                   </DropdownMenu>
@@ -2331,7 +2337,7 @@ function AppShellContent({
                       >
                         {/* Header with title and clear button (only clears user-added filters, never pinned) */}
                         <div className="flex items-center justify-between px-2 py-1.5">
-                          <span className="text-xs font-medium text-muted-foreground">Filter Chats</span>
+                          <span className="text-xs font-medium text-muted-foreground">{i18nLabels.filterChats}</span>
                           {(listFilter.size > 0 || labelFilter.size > 0) && (
                             <button
                               onClick={(e) => {
@@ -2341,7 +2347,7 @@ function AppShellContent({
                               }}
                               className="text-xs text-muted-foreground hover:text-foreground"
                             >
-                              Clear
+                              {i18nLabels.clear}
                             </button>
                           )}
                         </div>
@@ -2410,7 +2416,7 @@ function AppShellContent({
                                   }
                                 }
                               }}
-                              placeholder="Search statuses & labels..."
+                              placeholder={i18nLabels.searchPlaceholder}
                               className="w-full bg-transparent text-sm text-foreground placeholder:text-muted-foreground outline-none"
                               autoFocus
                             />
@@ -2430,7 +2436,7 @@ function AppShellContent({
                                   <StyledDropdownMenuItem disabled>
                                     <FilterMenuRow
                                       icon={<Flag className="h-3.5 w-3.5" />}
-                                      label="Flagged"
+                                      label={i18nLabels.flagged}
                                       accessory={<Check className="h-3 w-3 text-muted-foreground" />}
                                     />
                                   </StyledDropdownMenuItem>
@@ -2539,7 +2545,7 @@ function AppShellContent({
                             <DropdownMenuSub>
                               <StyledDropdownMenuSubTrigger>
                                 <Inbox className="h-3.5 w-3.5" />
-                                <span className="flex-1">Statuses</span>
+                                <span className="flex-1">{i18nLabels.filterStatuses}</span>
                               </StyledDropdownMenuSubTrigger>
                               <StyledDropdownMenuSubContent minWidth="min-w-[180px]">
                                 {effectiveTodoStates.map(state => {
@@ -2611,12 +2617,12 @@ function AppShellContent({
                             <DropdownMenuSub>
                               <StyledDropdownMenuSubTrigger>
                                 <Tag className="h-3.5 w-3.5" />
-                                <span className="flex-1">Labels</span>
+                                <span className="flex-1">{i18nLabels.filterLabels}</span>
                               </StyledDropdownMenuSubTrigger>
                               <StyledDropdownMenuSubContent minWidth="min-w-[180px]">
                                 {labelConfigs.length === 0 ? (
                                   <StyledDropdownMenuItem disabled>
-                                    <span className="text-muted-foreground">No labels configured</span>
+                                    <span className="text-muted-foreground">{i18nLabels.noLabelsConfigured}</span>
                                   </StyledDropdownMenuItem>
                                 ) : (
                                   <FilterLabelItems
@@ -2636,7 +2642,7 @@ function AppShellContent({
                               }}
                             >
                               <Search className="h-3.5 w-3.5" />
-                              <span className="flex-1">Search</span>
+                              <span className="flex-1">{i18nLabels.search}</span>
                             </StyledDropdownMenuItem>
                           </>
                         ) : (
@@ -2647,7 +2653,7 @@ function AppShellContent({
                                 Supports keyboard navigation (ArrowUp/Down/Enter in input). */}
                             {filterDropdownResults.states.length === 0 && filterDropdownResults.labels.length === 0 ? (
                               <div className="px-3 py-4 text-center text-xs text-muted-foreground">
-                                No matching statuses or labels
+                                {i18nLabels.noMatchingFilters}
                               </div>
                             ) : (
                               <div ref={filterDropdownListRef} className="max-h-[240px] overflow-y-auto py-1">
@@ -2655,7 +2661,7 @@ function AppShellContent({
                                 {filterDropdownResults.states.length > 0 && (
                                   <>
                                     <div className="px-3 pt-1.5 pb-1 text-[11px] font-medium text-muted-foreground/60 uppercase tracking-wider">
-                                      Statuses
+                                      {i18nLabels.filterStatuses}
                                     </div>
                                     {filterDropdownResults.states.map((state, index) => {
                                       const applyColor = state.iconColorable
@@ -2742,7 +2748,7 @@ function AppShellContent({
                                 {filterDropdownResults.labels.length > 0 && (
                                   <>
                                     <div className="px-3 pt-1.5 pb-1 text-[11px] font-medium text-muted-foreground/60 uppercase tracking-wider">
-                                      Labels
+                                      {i18nLabels.filterLabels}
                                     </div>
                                     {filterDropdownResults.labels.map((item, index) => {
                                       // Offset by state count for unified index
@@ -2834,7 +2840,7 @@ function AppShellContent({
                       trigger={
                         <HeaderIconButton
                           icon={<Plus className="h-4 w-4" />}
-                          tooltip="Add Source"
+                          tooltip={i18nLabels.addSource}
                           data-tutorial="add-source-button"
                         />
                       }
@@ -2850,7 +2856,7 @@ function AppShellContent({
                       trigger={
                         <HeaderIconButton
                           icon={<Plus className="h-4 w-4" />}
-                          tooltip="Add Skill"
+                          tooltip={i18nLabels.addSkill}
                           data-tutorial="add-skill-button"
                         />
                       }

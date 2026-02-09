@@ -17,6 +17,13 @@ export interface SessionListLabels {
   otherConversations: string
   renameConversation: string
   renamePlaceholder: string
+  emptyTitle: string
+  emptyDescription: string
+  emptyAction: string
+  searchNoConversations: string
+  searchDescription: string
+  searchClear: string
+  sessionsAria: string
 }
 
 export function getSessionListLabels(t: TFunction): SessionListLabels {
@@ -37,5 +44,12 @@ export function getSessionListLabels(t: TFunction): SessionListLabels {
     otherConversations: t('common:sessionList.search.otherConversations'),
     renameConversation: t('common:sessionList.rename.title'),
     renamePlaceholder: t('common:sessionList.rename.placeholder'),
+    emptyTitle: t('common:sessionList.empty.title'),
+    emptyDescription: t('common:sessionList.empty.description'),
+    emptyAction: t('common:sessionList.empty.action'),
+    searchNoConversations: t('common:sessionList.search.noConversations'),
+    searchDescription: t('common:sessionList.search.description'),
+    searchClear: t('common:sessionList.search.clear'),
+    sessionsAria: t('common:sessionList.search.sessionsAria'),
   }
 }

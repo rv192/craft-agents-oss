@@ -12,6 +12,7 @@ import { flattenLabels, parseLabelEntry, formatLabelEntry, formatDisplayValue } 
 import { resolveEntityColor } from "@craft-agent/shared/colors"
 import { useTheme } from "@/context/ThemeContext"
 import { Spinner, Tooltip, TooltipTrigger, TooltipContent } from "@craft-agent/ui"
+import { useTranslation } from 'react-i18next'
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Empty, EmptyHeader, EmptyMedia, EmptyTitle, EmptyDescription, EmptyContent } from "@/components/ui/empty"
 import { Separator } from "@/components/ui/separator"
@@ -37,6 +38,7 @@ import {
 import { DropdownMenuProvider, ContextMenuProvider } from "@/components/ui/menu-context"
 import { SessionMenu } from "./SessionMenu"
 import { SessionSearchHeader } from "./SessionSearchHeader"
+import { getSessionListLabels } from "./session-list-labels"
 import {
   Dialog,
   DialogContent,
@@ -55,6 +57,7 @@ import type { SessionMeta } from "@/atoms/sessions"
 import type { ViewConfig } from "@craft-agent/shared/views"
 import { PERMISSION_MODE_CONFIG, type PermissionMode } from "@craft-agent/shared/agent/modes"
 import { fuzzyScore } from "@craft-agent/shared/search"
+import type { SessionListLabels } from "./session-list-labels"
 
 // Pagination constants
 const INITIAL_DISPLAY_LIMIT = 20
@@ -82,9 +85,9 @@ const shortTimeLocale: Pick<Locale, 'formatDistance'> = {
  * Format a date for the date header
  * Returns "Today", "Yesterday", or formatted date like "Dec 19"
  */
-function formatDateHeader(date: Date): string {
-  if (isToday(date)) return "Today"
-  if (isYesterday(date)) return "Yesterday"
+function formatDateHeader(date: Date, labels: SessionListLabels): string {
+  if (isToday(date)) return labels.today
+  if (isYesterday(date)) return labels.yesterday
   return format(date, "MMM d")
 }
 
@@ -92,7 +95,10 @@ function formatDateHeader(date: Date): string {
  * Group sessions by date (day boundary)
  * Returns array of { date, sessions } sorted by date descending
  */
-function groupSessionsByDate(sessions: SessionMeta[]): Array<{ date: Date; label: string; sessions: SessionMeta[] }> {
+function groupSessionsByDate(
+  sessions: SessionMeta[],
+  labels: SessionListLabels
+): Array<{ date: Date; label: string; sessions: SessionMeta[] }> {
   const groups = new Map<string, { date: Date; sessions: SessionMeta[] }>()
 
   for (const session of sessions) {
@@ -111,7 +117,7 @@ function groupSessionsByDate(sessions: SessionMeta[]): Array<{ date: Date; label
     .sort((a, b) => b.date.getTime() - a.date.getTime())
     .map(group => ({
       ...group,
-      label: formatDateHeader(group.date),
+      label: formatDateHeader(group.date, labels),
     }))
 }
 
@@ -211,8 +217,9 @@ function sessionMatchesCurrentFilter(
     case 'allChats':
       return true // Secondary filters already checked above
 
-    case 'flagged':
+    case 'flagged': {
       return session.isFlagged === true
+    }
 
     case 'state':
       // Default to 'todo' for sessions without explicit todoState (matches getSessionTodoState logic)
@@ -225,16 +232,18 @@ function sessionMatchesCurrentFilter(
       return labelIds.includes(currentFilter.labelId)
     }
 
-    case 'view':
+    case 'view': {
       if (!evaluateViews) return true
       const matched = evaluateViews(session)
       if (currentFilter.viewId === '__all__') return matched.length > 0
       return matched.some(v => v.id === currentFilter.viewId)
+    }
 
-    default:
+    default: {
       // Exhaustive check - TypeScript will error if we miss a case
       const _exhaustive: never = currentFilter
       return true
+    }
   }
 }
 
@@ -828,6 +837,8 @@ export function SessionList({
   const [session] = useSession()
   const { navigate } = useNavigation()
   const navState = useNavigationState()
+  const { t } = useTranslation(['common'])
+  const listLabels = getSessionListLabels(t)
 
   // Pre-flatten label tree once for efficient ID lookups in each SessionItem
   const flatLabels = useMemo(() => flattenLabels(labels), [labels])
@@ -1059,7 +1070,7 @@ export function SessionList({
   }, [hasMore, loadMore])
 
   // Group sessions by date (only used in normal mode, not search mode)
-  const dateGroups = useMemo(() => groupSessionsByDate(paginatedItems), [paginatedItems])
+  const dateGroups = useMemo(() => groupSessionsByDate(paginatedItems, listLabels), [paginatedItems, listLabels])
 
   // Create flat list for keyboard navigation (maintains order across groups/sections)
   const flatItems = useMemo(() => {
@@ -1250,9 +1261,9 @@ export function SessionList({
           <EmptyMedia variant="icon">
             <Inbox />
           </EmptyMedia>
-          <EmptyTitle>No conversations yet</EmptyTitle>
+          <EmptyTitle>{listLabels.emptyTitle}</EmptyTitle>
           <EmptyDescription>
-            Conversations with your agent appear here. Start one to get going.
+            {listLabels.emptyDescription}
           </EmptyDescription>
         </EmptyHeader>
         <EmptyContent>
@@ -1266,7 +1277,7 @@ export function SessionList({
             }}
             className="inline-flex items-center h-7 px-3 text-xs font-medium rounded-[8px] bg-background shadow-minimal hover:bg-foreground/[0.03] transition-colors"
           >
-            New Conversation
+            {listLabels.emptyAction}
           </button>
         </EmptyContent>
       </Empty>
@@ -1297,20 +1308,20 @@ export function SessionList({
           className="flex flex-col pb-14 min-w-0"
           data-focus-zone="session-list"
           role="listbox"
-          aria-label="Sessions"
+          aria-label={listLabels.sessionsAria}
         >
           {/* No results message when in search mode */}
           {isSearchMode && flatItems.length === 0 && !isSearchingContent && (
             <div className="flex flex-col items-center justify-center py-12 px-4">
-              <p className="text-sm text-muted-foreground">No conversations found</p>
+              <p className="text-sm text-muted-foreground">{listLabels.searchNoConversations}</p>
               <p className="text-xs text-muted-foreground/60 mt-0.5">
-                Searched titles and message content
+                {listLabels.searchDescription}
               </p>
               <button
                 onClick={() => onSearchChange?.('')}
                 className="text-xs text-foreground hover:underline mt-2"
               >
-                Clear search
+                {listLabels.searchClear}
               </button>
             </div>
           )}
@@ -1321,14 +1332,14 @@ export function SessionList({
               {/* No results in current filter message */}
               {matchingFilterItems.length === 0 && otherResultItems.length > 0 && (
                 <div className="px-4 py-3 text-sm text-muted-foreground">
-                  No results in current filter
+                  {listLabels.noResultsInCurrentFilter}
                 </div>
               )}
 
               {/* Matching Filters section - flat list, no date grouping */}
               {matchingFilterItems.length > 0 && (
                 <>
-                  <SessionListSectionHeader label="In Current View" />
+                  <SessionListSectionHeader label={listLabels.inCurrentView} />
                   {matchingFilterItems.map((item, index) => {
                     const flatIndex = sessionIndexMap.get(item.id) ?? 0
                     const itemProps = getItemProps(item, flatIndex)
@@ -1375,7 +1386,7 @@ export function SessionList({
               {/* Other Matches section - flat list, no date grouping */}
               {otherResultItems.length > 0 && (
                 <>
-                  <SessionListSectionHeader label="Other Conversations" />
+                  <SessionListSectionHeader label={listLabels.otherConversations} />
                   {otherResultItems.map((item, index) => {
                     const flatIndex = sessionIndexMap.get(item.id) ?? 0
                     const itemProps = getItemProps(item, flatIndex)
@@ -1489,4 +1500,3 @@ export function SessionList({
     </div>
   )
 }
-
