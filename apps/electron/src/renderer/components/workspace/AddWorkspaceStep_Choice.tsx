@@ -1,8 +1,8 @@
 import { FolderPlus, FolderOpen } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { AddWorkspaceContainer, AddWorkspaceStepHeader } from "./primitives"
-import type { TFunction } from "i18next"
 import { useTranslation } from "react-i18next"
+import { getWorkspaceChoiceLabels } from './workspace-choice-labels'
 
 interface AddWorkspaceStep_ChoiceProps {
   onCreateNew: () => void
@@ -15,17 +15,6 @@ interface ChoiceCardProps {
   description: string
   onClick: () => void
   variant?: 'primary' | 'secondary'
-}
-
-export function getWorkspaceChoiceLabels(t: TFunction) {
-  return {
-    title: t('settings:workspace.add.title'),
-    description: t('settings:workspace.add.description'),
-    createNew: t('settings:workspace.add.createNew'),
-    createDescription: t('settings:workspace.add.createDescription'),
-    openFolder: t('settings:workspace.add.openFolder'),
-    openDescription: t('settings:workspace.add.openDescription'),
-  }
 }
 
 function ChoiceCard({ icon, title, description, onClick, variant = 'secondary' }: ChoiceCardProps) {

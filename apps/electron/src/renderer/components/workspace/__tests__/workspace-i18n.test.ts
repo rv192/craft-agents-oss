@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'bun:test'
 import type { TFunction } from 'i18next'
-import { getWorkspaceChoiceLabels } from '../AddWorkspaceStep_Choice'
+import { getWorkspaceChoiceLabels } from '../workspace-choice-labels'
 
 describe('workspace i18n labels', () => {
   it('returns localized labels', () => {
