@@ -6,7 +6,17 @@ import { getChatDisplayLabels } from '../chat-display-labels'
 describe('app shell static i18n label helpers', () => {
   it('returns localized app-shell labels', () => {
     const t: TFunction = ((key: string) => ({
+      'common:navigation.newChat': 'New Chat Localized',
+      'common:navigation.allChats': 'All Chats Localized',
       'common:navigation.helpDocs': 'Help Localized',
+      'common:navigation.labels': 'Labels Localized',
+      'common:navigation.settings': 'Settings Localized',
+      'common:navigation.sources': 'Sources Localized',
+      'common:navigation.skills': 'Skills Localized',
+      'common:navigation.status': 'Status Localized',
+      'common:navigation.apis': 'APIs Localized',
+      'common:navigation.mcps': 'MCPs Localized',
+      'common:navigation.localFolders': 'Local Folders Localized',
       'common:filters.filterChats': 'Filter Chats Localized',
       'common:filters.searchPlaceholder': 'Search labels localized',
       'common:menu.addSource': 'Add Source Localized',
@@ -15,7 +25,17 @@ describe('app shell static i18n label helpers', () => {
 
     const labels = getAppShellLabels(t)
 
+    expect(labels.newChat).toBe('New Chat Localized')
+    expect(labels.allChats).toBe('All Chats Localized')
     expect(labels.helpDocs).toBe('Help Localized')
+    expect(labels.labels).toBe('Labels Localized')
+    expect(labels.settings).toBe('Settings Localized')
+    expect(labels.sources).toBe('Sources Localized')
+    expect(labels.skills).toBe('Skills Localized')
+    expect(labels.statuses).toBe('Status Localized')
+    expect(labels.apis).toBe('APIs Localized')
+    expect(labels.mcps).toBe('MCPs Localized')
+    expect(labels.localFolders).toBe('Local Folders Localized')
     expect(labels.filterChats).toBe('Filter Chats Localized')
     expect(labels.searchPlaceholder).toBe('Search labels localized')
     expect(labels.addSource).toBe('Add Source Localized')

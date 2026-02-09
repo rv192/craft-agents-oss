@@ -2014,7 +2014,7 @@ function AppShellContent({
                         data-tutorial="new-chat-button"
                       >
                         <SquarePenRounded className="h-3.5 w-3.5 shrink-0" />
-                        New Chat
+                        {i18nLabels.newChat}
                       </Button>
                     </ContextMenuTrigger>
                     <StyledContextMenuContent>
@@ -2035,7 +2035,7 @@ function AppShellContent({
                     // --- Chats Section ---
                     {
                       id: "nav:allChats",
-                      title: "All Chats",
+                      title: i18nLabels.allChats,
                       label: String(workspaceSessionMetas.length),
                       icon: Inbox,
                       variant: chatFilter?.kind === 'allChats' ? "default" : "ghost",
@@ -2043,7 +2043,7 @@ function AppShellContent({
                     },
                     {
                       id: "nav:flagged",
-                      title: "Flagged",
+                      title: i18nLabels.flagged,
                       label: String(flaggedCount),
                       icon: <Flag className="h-3.5 w-3.5" />,
                       variant: chatFilter?.kind === 'flagged' ? "default" : "ghost",
@@ -2052,7 +2052,7 @@ function AppShellContent({
                     // States: expandable section with status sub-items (drag-and-drop reorder)
                     {
                       id: "nav:states",
-                      title: "Status",
+                      title: i18nLabels.statuses,
                       icon: CheckCircle2,
                       variant: "ghost",
                       onClick: () => toggleExpanded('nav:states'),
@@ -2084,7 +2084,7 @@ function AppShellContent({
                     // Labels: navigable header (shows all labeled sessions) + hierarchical tree (drag-and-drop reorder + re-parent)
                     {
                       id: "nav:labels",
-                      title: "Labels",
+                      title: i18nLabels.labels,
                       icon: Tag,
                       // Only highlighted when "Labels" itself is selected (not sub-labels)
                       variant: (chatFilter?.kind === 'label' && chatFilter.labelId === '__all__') ? "default" as const : "ghost" as const,
@@ -2105,7 +2105,7 @@ function AppShellContent({
                     // --- Sources & Skills Section ---
                     {
                       id: "nav:sources",
-                      title: "Sources",
+                      title: i18nLabels.sources,
                       label: String(sources.length),
                       icon: DatabaseZap,
                       variant: (isSourcesNavigation(navState) && !sourceFilter) ? "default" : "ghost",
@@ -2121,7 +2121,7 @@ function AppShellContent({
                       items: [
                         {
                           id: "nav:sources:api",
-                          title: "APIs",
+                          title: i18nLabels.apis,
                           label: String(sourceTypeCounts.api),
                           icon: Globe,
                           variant: (sourceFilter?.kind === 'type' && sourceFilter.sourceType === 'api') ? "default" : "ghost",
@@ -2134,7 +2134,7 @@ function AppShellContent({
                         },
                         {
                           id: "nav:sources:mcp",
-                          title: "MCPs",
+                          title: i18nLabels.mcps,
                           label: String(sourceTypeCounts.mcp),
                           icon: <McpIcon className="h-3.5 w-3.5" />,
                           variant: (sourceFilter?.kind === 'type' && sourceFilter.sourceType === 'mcp') ? "default" : "ghost",
@@ -2147,7 +2147,7 @@ function AppShellContent({
                         },
                         {
                           id: "nav:sources:local",
-                          title: "Local Folders",
+                          title: i18nLabels.localFolders,
                           label: String(sourceTypeCounts.local),
                           icon: FolderOpen,
                           variant: (sourceFilter?.kind === 'type' && sourceFilter.sourceType === 'local') ? "default" : "ghost",
@@ -2162,7 +2162,7 @@ function AppShellContent({
                     },
                     {
                       id: "nav:skills",
-                      title: "Skills",
+                      title: i18nLabels.skills,
                       label: String(skills.length),
                       icon: Zap,
                       variant: isSkillsNavigation(navState) ? "default" : "ghost",
@@ -2177,7 +2177,7 @@ function AppShellContent({
                     // --- Settings ---
                     {
                       id: "nav:settings",
-                      title: "Settings",
+                      title: i18nLabels.settings,
                       icon: Settings,
                       variant: isSettingsNavigation(navState) ? "default" : "ghost",
                       onClick: () => handleSettingsClick('app'),
