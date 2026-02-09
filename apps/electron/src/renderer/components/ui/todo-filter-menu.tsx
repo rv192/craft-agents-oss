@@ -7,6 +7,7 @@ import {
   getStateIcon,
   getStateColor,
 } from '@/config/todo-states'
+import { useTranslation } from 'react-i18next'
 
 // Re-export types for backwards compatibility
 export { type TodoStateId, type TodoState, getStateIcon, getStateColor }
@@ -58,6 +59,7 @@ export function TodoStateMenu({
   onSelect,
   className,
 }: TodoStateMenuProps) {
+  const { t } = useTranslation(['common'])
   const [filter, setFilter] = React.useState('')
   const inputRef = React.useRef<HTMLInputElement>(null)
 
@@ -82,13 +84,13 @@ export function TodoStateMenu({
           ref={inputRef}
           value={filter}
           onValueChange={setFilter}
-          placeholder="Filter statuses..."
+          placeholder={t('common:todoFilter.placeholder')}
           className="w-full bg-transparent text-sm outline-none placeholder:text-muted-foreground/50"
         />
       </div>
       <CommandPrimitive.List className={MENU_LIST_STYLE}>
         <CommandPrimitive.Empty className="py-3 text-center text-sm text-muted-foreground">
-          No status found
+          {t('common:todoFilter.noResults')}
         </CommandPrimitive.Empty>
         {states.map((state) => {
           const isActive = activeState === state.id
