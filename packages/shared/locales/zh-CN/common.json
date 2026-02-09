@@ -335,6 +335,52 @@
     },
     "quit": "退出 Craft Agents"
   },
+  "chatInput": {
+    "placeholders": {
+      "workOn": "你想先做什么？",
+      "shiftTabMode": "使用 Shift + Tab 在 Explore 与 Execute 之间切换",
+      "mentionHint": "输入 @ 可提及文件、文件夹或技能",
+      "labelHint": "输入 # 可给当前对话添加标签",
+      "newlineHint": "按 Shift + 回车换行",
+      "sidebarToggleHint": "按 ⌘/Ctrl + B 切换侧边栏",
+      "focusModeHint": "按 ⌘/Ctrl + . 切换专注模式"
+    },
+    "actions": {
+      "attachFiles": "附加文件",
+      "attachFilesTooltip": "附加文件",
+      "chooseSources": "选择来源",
+      "noSourcesConfigured": "暂无来源配置。",
+      "sourcesTooltip": "来源",
+      "addSourcesInSettings": "可在设置中添加来源。",
+      "searchSources": "搜索来源...",
+      "workInFolder": "在文件夹中工作",
+      "folderFallback": "文件夹",
+      "filterFolders": "筛选文件夹...",
+      "noFoldersFound": "未找到文件夹",
+      "chooseFolder": "选择文件夹...",
+      "resetFolder": "重置",
+      "gitBranchPrefix": "分支：",
+      "noDetailsProvided": "未提供详细信息"
+    }
+  },
+  "todoFilter": {
+    "placeholder": "筛选状态...",
+    "noResults": "未找到状态"
+  },
+  "slashMenu": {
+    "searchPlaceholder": "搜索命令...",
+    "noResults": "未找到命令",
+    "footerHint": "使用 @ 提及技能和文件",
+    "sections": {
+      "modes": "模式",
+      "features": "功能",
+      "folders": "最近工作目录"
+    },
+    "ultrathink": {
+      "label": "深度思考",
+      "description": "用于复杂问题的扩展推理"
+    }
+  },
   "rightSidebar": {
     "files": {
       "comingSoon": "文件面板 - 即将上线",

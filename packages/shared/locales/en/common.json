@@ -335,6 +335,52 @@
     },
     "quit": "Quit Craft Agents"
   },
+  "chatInput": {
+    "placeholders": {
+      "workOn": "What would you like to work on?",
+      "shiftTabMode": "Use Shift + Tab to switch between Explore and Execute",
+      "mentionHint": "Type @ to mention files, folders, or skills",
+      "labelHint": "Type # to apply labels to this conversation",
+      "newlineHint": "Press Shift + Return to add a new line",
+      "sidebarToggleHint": "Press ⌘/Ctrl + B to toggle the sidebar",
+      "focusModeHint": "Press ⌘/Ctrl + . for focus mode"
+    },
+    "actions": {
+      "attachFiles": "Attach Files",
+      "attachFilesTooltip": "Attach files",
+      "chooseSources": "Choose Sources",
+      "noSourcesConfigured": "No sources configured.",
+      "sourcesTooltip": "Sources",
+      "addSourcesInSettings": "Add sources in Settings.",
+      "searchSources": "Search sources...",
+      "workInFolder": "Work in Folder",
+      "folderFallback": "Folder",
+      "filterFolders": "Filter folders...",
+      "noFoldersFound": "No folders found",
+      "chooseFolder": "Choose Folder...",
+      "resetFolder": "Reset",
+      "gitBranchPrefix": "on ",
+      "noDetailsProvided": "No details provided"
+    }
+  },
+  "todoFilter": {
+    "placeholder": "Filter statuses...",
+    "noResults": "No status found"
+  },
+  "slashMenu": {
+    "searchPlaceholder": "Search commands...",
+    "noResults": "No commands found",
+    "footerHint": "Use @ for skills and files",
+    "sections": {
+      "modes": "Modes",
+      "features": "Features",
+      "folders": "Recent Working Directories"
+    },
+    "ultrathink": {
+      "label": "Ultrathink",
+      "description": "Extended reasoning for complex problems"
+    }
+  },
   "rightSidebar": {
     "files": {
       "comingSoon": "Files panel - Coming soon",
