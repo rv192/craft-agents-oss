@@ -32,6 +32,7 @@
   "goForward": "Go forward",
   "checkForUpdates": "Check for Updates...",
   "installUpdate": "Install Update...",
+  "installUpdateWithVersion": "Install Update...\t【{{version}}】",
   "debug": "Debug",
   "debugCheckForUpdates": "Check for Updates",
   "debugInstallUpdate": "Install Update",

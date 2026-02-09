@@ -1,7 +1,7 @@
 import { app } from 'electron'
 import { readFile } from 'fs/promises'
-import { join } from 'path'
 import { loadStoredConfig } from '@craft-agent/shared/config'
+import { buildLocaleCandidatePaths } from './i18n-resource-paths'
 
 export type MainTranslationParams = Record<string, string | number>
 export type MainTranslationFn = (key: string, params?: MainTranslationParams) => string
@@ -40,17 +40,29 @@ async function loadNamespace(locale: string, namespace: string): Promise<LocaleR
   const cached = namespaceCache.get(cacheKey)
   if (cached) return cached
 
-  const filePath = join(process.cwd(), 'packages', 'shared', 'locales', locale, `${namespace}.json`)
-  try {
-    const raw = await readFile(filePath, 'utf-8')
-    const parsed = JSON.parse(raw) as LocaleResources
-    namespaceCache.set(cacheKey, parsed)
-    return parsed
-  } catch {
-    const fallback: LocaleResources = {}
-    namespaceCache.set(cacheKey, fallback)
-    return fallback
+  const candidatePaths = buildLocaleCandidatePaths({
+    isPackaged: app.isPackaged,
+    cwd: process.cwd(),
+    appPath: app.getAppPath(),
+    resourcesPath: process.resourcesPath,
+    locale,
+    namespace,
+  })
+
+  for (const filePath of candidatePaths) {
+    try {
+      const raw = await readFile(filePath, 'utf-8')
+      const parsed = JSON.parse(raw) as LocaleResources
+      namespaceCache.set(cacheKey, parsed)
+      return parsed
+    } catch {
+      // try next candidate path
+    }
   }
+
+  const fallback: LocaleResources = {}
+  namespaceCache.set(cacheKey, fallback)
+  return fallback
 }
 
 export async function getMainI18n(namespaces: string[] = ['menu', 'dialogs']) {

@@ -32,6 +32,7 @@
   "goForward": "前进",
   "checkForUpdates": "检查更新...",
   "installUpdate": "安装更新...",
+  "installUpdateWithVersion": "安装更新...\t【{{version}}】",
   "debug": "调试",
   "debugCheckForUpdates": "检查更新",
   "debugInstallUpdate": "安装更新",

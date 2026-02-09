@@ -17,6 +17,13 @@ import { loadWorkspaceSources, getSourcesBySlugs, type LoadedSource } from '@cra
 import { isValidThinkingLevel } from '@craft-agent/shared/agent/thinking-levels'
 import { getCredentialManager } from '@craft-agent/shared/credentials'
 import { MarkItDown } from 'markitdown-js'
+import { getMainI18n } from './i18n'
+import {
+  buildDeleteSessionDialogOptions,
+  buildGitBashBrowseDialogOptions,
+  buildLogoutDialogOptions,
+  buildOpenFolderDialogOptions,
+} from './i18n-labels'
 
 /**
  * Sanitizes a filename to prevent path traversal and filesystem issues.
@@ -817,12 +824,9 @@ export function registerIpcHandlers(sessionManager: SessionManager, windowManage
     const win = BrowserWindow.fromWebContents(event.sender)
     if (!win) return null
 
-    const result = await dialog.showOpenDialog(win, {
-      title: 'Select bash.exe',
-      filters: [{ name: 'Executable', extensions: ['exe'] }],
-      properties: ['openFile'],
-      defaultPath: 'C:\\Program Files\\Git\\bin',
-    })
+    const { t } = await getMainI18n(['dialogs'])
+
+    const result = await dialog.showOpenDialog(win, buildGitBashBrowseDialogOptions(t))
 
     if (result.canceled || result.filePaths.length === 0) {
       return null
@@ -1116,15 +1120,8 @@ export function registerIpcHandlers(sessionManager: SessionManager, windowManage
   // Show logout confirmation dialog
   ipcMain.handle(IPC_CHANNELS.SHOW_LOGOUT_CONFIRMATION, async () => {
     const window = BrowserWindow.getFocusedWindow() || BrowserWindow.getAllWindows()[0]
-    const result = await dialog.showMessageBox(window, {
-      type: 'warning',
-      buttons: ['Cancel', 'Log Out'],
-      defaultId: 0,
-      cancelId: 0,
-      title: 'Log Out',
-      message: 'Are you sure you want to log out?',
-      detail: 'All conversations will be deleted. This action cannot be undone.',
-    } as Electron.MessageBoxOptions)
+    const { t } = await getMainI18n(['dialogs'])
+    const result = await dialog.showMessageBox(window, buildLogoutDialogOptions(t))
     // result.response is the index of the clicked button
     // 0 = Cancel, 1 = Log Out
     return result.response === 1
@@ -1133,15 +1130,8 @@ export function registerIpcHandlers(sessionManager: SessionManager, windowManage
   // Show delete session confirmation dialog
   ipcMain.handle(IPC_CHANNELS.SHOW_DELETE_SESSION_CONFIRMATION, async (_event, name: string) => {
     const window = BrowserWindow.getFocusedWindow() || BrowserWindow.getAllWindows()[0]
-    const result = await dialog.showMessageBox(window, {
-      type: 'warning',
-      buttons: ['Cancel', 'Delete'],
-      defaultId: 0,
-      cancelId: 0,
-      title: 'Delete Conversation',
-      message: `Are you sure you want to delete: "${name}"?`,
-      detail: 'This action cannot be undone.',
-    } as Electron.MessageBoxOptions)
+    const { t } = await getMainI18n(['dialogs'])
+    const result = await dialog.showMessageBox(window, buildDeleteSessionDialogOptions(t, name))
     // result.response is the index of the clicked button
     // 0 = Cancel, 1 = Delete
     return result.response === 1
@@ -1431,10 +1421,8 @@ export function registerIpcHandlers(sessionManager: SessionManager, windowManage
 
   // Open native folder dialog for selecting working directory
   ipcMain.handle(IPC_CHANNELS.OPEN_FOLDER_DIALOG, async () => {
-    const result = await dialog.showOpenDialog({
-      properties: ['openDirectory', 'createDirectory'],
-      title: 'Select Working Directory',
-    })
+    const { t } = await getMainI18n(['dialogs'])
+    const result = await dialog.showOpenDialog(buildOpenFolderDialogOptions(t))
     return result.canceled ? null : result.filePaths[0]
   })
 
