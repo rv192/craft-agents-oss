@@ -255,6 +255,59 @@
     "ruleCount_one": "{{count}} rule",
     "ruleCount_other": "{{count}} rules"
   },
+  "tables": {
+    "searchPlaceholder": "Search...",
+    "emptyDefault": "No data available",
+    "permissions": {
+      "accessHeader": "Access",
+      "typeHeader": "Type",
+      "patternHeader": "Pattern",
+      "commentHeader": "Comment",
+      "searchPlaceholder": "Search patterns...",
+      "empty": "No permissions configured",
+      "fullscreen": "View Fullscreen",
+      "patternCopied": "Pattern copied to clipboard",
+      "patternCopyFailed": "Failed to copy pattern",
+      "subtitle": {
+        "rule": "{{count}} rule",
+        "rules": "{{count}} rules"
+      }
+    },
+    "labels": {
+      "colorHeader": "Color",
+      "nameHeader": "Name",
+      "typeHeader": "Type",
+      "searchPlaceholder": "Search labels...",
+      "empty": "No labels configured",
+      "fullscreen": "View Fullscreen",
+      "subtitle": {
+        "label": "{{count}} label",
+        "labels": "{{count}} labels"
+      }
+    },
+    "autoRules": {
+      "labelHeader": "Label",
+      "patternHeader": "Pattern",
+      "flagsHeader": "Flags",
+      "templateHeader": "Template",
+      "descriptionHeader": "Description",
+      "searchPlaceholder": "Search rules...",
+      "empty": "No auto-apply rules configured",
+      "fullscreen": "View Fullscreen",
+      "subtitle": {
+        "rule": "{{count}} rule",
+        "rules": "{{count}} rules"
+      },
+      "patternCopied": "Pattern copied to clipboard",
+      "patternCopyFailed": "Failed to copy pattern"
+    },
+    "tools": {
+      "accessHeader": "Access",
+      "toolHeader": "Tool",
+      "descriptionHeader": "Description",
+      "empty": "No tool permissions configured"
+    }
+  },
   "time": {
     "never": "Never",
     "justNow": "Just now",

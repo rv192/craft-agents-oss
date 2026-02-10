@@ -255,6 +255,59 @@
     "ruleCount_one": "{{count}} 条规则",
     "ruleCount_other": "{{count}} 条规则"
   },
+  "tables": {
+    "searchPlaceholder": "搜索...",
+    "emptyDefault": "暂无数据",
+    "permissions": {
+      "accessHeader": "权限",
+      "typeHeader": "类型",
+      "patternHeader": "规则",
+      "commentHeader": "备注",
+      "searchPlaceholder": "搜索规则...",
+      "empty": "暂无权限配置",
+      "fullscreen": "全屏查看",
+      "patternCopied": "规则已复制到剪贴板",
+      "patternCopyFailed": "复制规则失败",
+      "subtitle": {
+        "rule": "{{count}} 条规则",
+        "rules": "{{count}} 条规则"
+      }
+    },
+    "labels": {
+      "colorHeader": "颜色",
+      "nameHeader": "名称",
+      "typeHeader": "类型",
+      "searchPlaceholder": "搜索标签...",
+      "empty": "暂无标签配置",
+      "fullscreen": "全屏查看",
+      "subtitle": {
+        "label": "{{count}} 个标签",
+        "labels": "{{count}} 个标签"
+      }
+    },
+    "autoRules": {
+      "labelHeader": "标签",
+      "patternHeader": "规则",
+      "flagsHeader": "标记",
+      "templateHeader": "模板",
+      "descriptionHeader": "说明",
+      "searchPlaceholder": "搜索规则...",
+      "empty": "暂无自动应用规则",
+      "fullscreen": "全屏查看",
+      "subtitle": {
+        "rule": "{{count}} 条规则",
+        "rules": "{{count}} 条规则"
+      },
+      "patternCopied": "规则已复制到剪贴板",
+      "patternCopyFailed": "复制规则失败"
+    },
+    "tools": {
+      "accessHeader": "权限",
+      "toolHeader": "工具",
+      "descriptionHeader": "说明",
+      "empty": "暂无工具权限配置"
+    }
+  },
   "time": {
     "never": "从未",
     "justNow": "刚刚",
