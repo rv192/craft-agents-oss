@@ -61,9 +61,10 @@ jobs:
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           RELEASE_TRANSLATION_MODEL: ${{ vars.RELEASE_TRANSLATION_MODEL }}
+          RELEASE_TRANSLATION_BASE_URL: ${{ vars.RELEASE_TRANSLATION_BASE_URL }}
         run: |
           set -euo pipefail
-          python3 scripts/release/translate-notes.py english-notes.md chinese-notes.md
+          bun run scripts/release/translate-notes.ts english-notes.md chinese-notes.md
 
       - name: Compose bilingual release body
         run: |
