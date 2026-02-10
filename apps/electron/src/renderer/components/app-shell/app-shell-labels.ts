@@ -4,6 +4,7 @@ export function getAppShellLabels(t: TFunction) {
   return {
     newChat: t('common:navigation.newChat'),
     allChats: t('common:navigation.allChats'),
+    allSkills: t('common:navigation.allSkills'),
     helpDocs: t('common:navigation.helpDocs'),
     labels: t('common:navigation.labels'),
     settings: t('common:navigation.settings'),
@@ -14,6 +15,7 @@ export function getAppShellLabels(t: TFunction) {
     mcps: t('common:navigation.mcps'),
     localFolders: t('common:navigation.localFolders'),
     permissions: t('common:navigation.permissions'),
+    views: t('common:navigation.views'),
     allDocumentation: t('common:navigation.allDocumentation'),
     filterChats: t('common:filters.filterChats'),
     clear: t('common:filters.clear'),

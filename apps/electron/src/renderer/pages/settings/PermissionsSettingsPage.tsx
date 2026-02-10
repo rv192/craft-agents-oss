@@ -84,19 +84,34 @@ function buildDefaultPermissionsData(config: PermissionsConfigFile | null, table
   // Allowed bash patterns
   config.allowedBashPatterns?.forEach((item) => {
     const { pattern, comment } = extractPatternInfo(item)
-    rows.push({ access: 'allowed', type: 'bash', pattern, comment })
+    rows.push({
+      access: 'allowed',
+      type: 'bash',
+      pattern,
+      comment,
+    })
   })
 
   // Allowed MCP patterns
   config.allowedMcpPatterns?.forEach((item) => {
     const { pattern, comment } = extractPatternInfo(item)
-    rows.push({ access: 'allowed', type: 'mcp', pattern, comment })
+    rows.push({
+      access: 'allowed',
+      type: 'mcp',
+      pattern,
+      comment,
+    })
   })
 
   // API endpoints
   config.allowedApiEndpoints?.forEach((item) => {
     const pattern = `${item.method} ${item.path}`
-    rows.push({ access: 'allowed', type: 'api', pattern, comment: item.comment || null })
+    rows.push({
+      access: 'allowed',
+      type: 'api',
+      pattern,
+      comment: item.comment || null,
+    })
   })
 
   // Write paths
@@ -149,9 +164,16 @@ function buildCustomPermissionsData(config: PermissionsConfigFile, tableLabels: 
   // Write paths are shown as allowed paths
   config.allowedWritePaths?.forEach((item) => {
     const pattern = typeof item === 'string' ? item : item.pattern
-    const comment = typeof item === 'string' ? 'Allowed write path' : (item.comment || 'Allowed write path')
+    const comment = typeof item === 'string'
+      ? tableLabels.permissions.table.allowedWritePath
+      : (item.comment || tableLabels.permissions.table.allowedWritePath)
     // Show as a special "tool" type since it's about Write/Edit operations
-    rows.push({ access: 'allowed', type: 'tool', pattern: `Write to: ${pattern}`, comment })
+    rows.push({
+      access: 'allowed',
+      type: 'tool',
+      pattern: tableLabels.permissions.table.writeToPattern.replace('{{pattern}}', pattern),
+      comment,
+    })
   })
 
   return rows

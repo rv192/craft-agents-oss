@@ -120,6 +120,7 @@
   "navigation": {
     "newChat": "New Chat",
     "allChats": "All Chats",
+    "allSkills": "All Skills",
     "flagged": "Flagged",
     "status": "Status",
     "labels": "Labels",
@@ -131,7 +132,8 @@
     "localFolders": "Local Folders",
     "helpDocs": "Help & Documentation",
     "allDocumentation": "All Documentation",
-    "permissions": "Permissions"
+    "permissions": "Permissions",
+    "views": "Views"
   },
   "filters": {
     "filterChats": "Filter Chats",

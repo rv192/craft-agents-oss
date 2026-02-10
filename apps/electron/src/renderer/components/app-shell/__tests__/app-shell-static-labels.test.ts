@@ -8,6 +8,7 @@ describe('app shell static i18n label helpers', () => {
     const t: TFunction = ((key: string) => ({
       'common:navigation.newChat': 'New Chat Localized',
       'common:navigation.allChats': 'All Chats Localized',
+      'common:navigation.allSkills': 'All Skills Localized',
       'common:navigation.helpDocs': 'Help Localized',
       'common:navigation.labels': 'Labels Localized',
       'common:navigation.settings': 'Settings Localized',
@@ -21,12 +22,14 @@ describe('app shell static i18n label helpers', () => {
       'common:filters.searchPlaceholder': 'Search labels localized',
       'common:menu.addSource': 'Add Source Localized',
       'common:menu.addSkill': 'Add Skill Localized',
+      'common:navigation.views': 'Views Localized',
     } as Record<string, string>)[key] || key) as TFunction
 
     const labels = getAppShellLabels(t)
 
     expect(labels.newChat).toBe('New Chat Localized')
     expect(labels.allChats).toBe('All Chats Localized')
+    expect(labels.allSkills).toBe('All Skills Localized')
     expect(labels.helpDocs).toBe('Help Localized')
     expect(labels.labels).toBe('Labels Localized')
     expect(labels.settings).toBe('Settings Localized')
@@ -40,6 +43,7 @@ describe('app shell static i18n label helpers', () => {
     expect(labels.searchPlaceholder).toBe('Search labels localized')
     expect(labels.addSource).toBe('Add Source Localized')
     expect(labels.addSkill).toBe('Add Skill Localized')
+    expect(labels.views).toBe('Views Localized')
   })
 
   it('returns localized compact chat empty-state labels', () => {

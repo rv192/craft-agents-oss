@@ -120,6 +120,7 @@
   "navigation": {
     "newChat": "新建对话",
     "allChats": "全部对话",
+    "allSkills": "全部技能",
     "flagged": "已标记",
     "status": "状态",
     "labels": "标签",
@@ -131,7 +132,8 @@
     "localFolders": "本地文件夹",
     "helpDocs": "帮助与文档",
     "allDocumentation": "全部文档",
-    "permissions": "权限"
+    "permissions": "权限",
+    "views": "视图"
   },
   "filters": {
     "filterChats": "筛选对话",
