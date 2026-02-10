@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react"
 import type { TFunction } from 'i18next'
 import { isMac } from "@/lib/platform"
+import { useActionLabel } from "@/actions"
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -13,6 +14,7 @@ import {
   StyledDropdownMenuSubContent,
 } from "@/components/ui/styled-dropdown"
 import * as Icons from "lucide-react"
+import { Tooltip, TooltipTrigger, TooltipContent } from "@craft-agent/ui"
 import { CraftAgentsSymbol } from "./icons/CraftAgentsSymbol"
 import { SquarePenRounded } from "./icons/SquarePenRounded"
 import { TopBarButton } from "./ui/TopBarButton"
@@ -266,7 +268,15 @@ export function AppMenu({
   const labels = getAppMenuLabels(t)
   const schemaLabels = getAppMenuSchemaLabels(t)
   const [isDebugMode, setIsDebugMode] = useState(false)
-  const modKey = isMac ? '⌘' : 'Ctrl+'
+
+  // Get hotkey labels from centralized action registry
+  const newChatHotkey = useActionLabel('app.newChat').hotkey
+  const newWindowHotkey = useActionLabel('app.newWindow').hotkey
+  const settingsHotkey = useActionLabel('app.settings').hotkey
+  const keyboardShortcutsHotkey = useActionLabel('app.keyboardShortcuts').hotkey
+  const quitHotkey = useActionLabel('app.quit').hotkey
+  const goBackHotkey = useActionLabel('nav.goBackAlt').hotkey
+  const goForwardHotkey = useActionLabel('nav.goForwardAlt').hotkey
 
   const editMenu = localizeSection(EDIT_MENU, schemaLabels)
   const viewMenu = localizeSection(VIEW_MENU, schemaLabels)

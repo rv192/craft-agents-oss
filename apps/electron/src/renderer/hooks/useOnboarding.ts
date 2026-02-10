@@ -48,6 +48,8 @@ interface UseOnboardingOptions {
   initialSetupNeeds?: SetupNeeds
   /** Start the wizard at a specific step (default: 'welcome') */
   initialStep?: OnboardingStep
+  /** Pre-select an API setup method (useful when editing an existing connection) */
+  initialApiSetupMethod?: ApiSetupMethod
   /** Called when user goes back from the initial step (dismisses the wizard) */
   onDismiss?: () => void
   /** Called immediately after config is saved to disk (before wizard closes).
@@ -68,12 +70,15 @@ interface UseOnboardingReturn {
 
   // Credentials
   handleSubmitCredential: (data: ApiKeySubmitData) => void
-  handleStartOAuth: () => void
+  handleStartOAuth: (methodOverride?: ApiSetupMethod) => void
 
   // Claude OAuth (two-step flow)
   isWaitingForCode: boolean
   handleSubmitAuthCode: (code: string) => void
   handleCancelOAuth: () => void
+
+  // Copilot device code (displayed during device flow)
+  copilotDeviceCode?: { userCode: string; verificationUri: string }
 
   // Git Bash (Windows)
   handleBrowseGitBash: () => Promise<string | null>
@@ -89,11 +94,43 @@ interface UseOnboardingReturn {
   reset: () => void
 }
 
-// Map ApiSetupMethod to AuthType for backend persistence
-function apiSetupMethodToAuthType(method: ApiSetupMethod): AuthType {
+// Map ApiSetupMethod to LlmConnectionSetup for the new unified connection system
+function apiSetupMethodToConnectionSetup(
+  method: ApiSetupMethod,
+  options: { credential?: string; baseUrl?: string; connectionDefaultModel?: string; models?: string[] }
+): LlmConnectionSetup {
   switch (method) {
-    case 'api_key': return 'api_key'
-    case 'claude_oauth': return 'oauth_token'
+    case 'anthropic_api_key':
+      return {
+        slug: 'anthropic-api',
+        credential: options.credential,
+        baseUrl: options.baseUrl,
+        defaultModel: options.connectionDefaultModel,
+        models: options.models,
+      }
+    case 'claude_oauth':
+      return {
+        slug: 'claude-max',
+        credential: options.credential,
+      }
+    case 'chatgpt_oauth':
+      return {
+        slug: 'codex',
+        credential: options.credential,
+      }
+    case 'openai_api_key':
+      return {
+        slug: 'codex-api',
+        credential: options.credential,
+        baseUrl: options.baseUrl,
+        defaultModel: options.connectionDefaultModel,
+        models: options.models,
+      }
+    case 'copilot_oauth':
+      return {
+        slug: 'copilot',
+        credential: options.credential,
+      }
   }
 }
 
@@ -101,6 +138,7 @@ export function useOnboarding({
   onComplete,
   initialSetupNeeds,
   initialStep = 'welcome',
+  initialApiSetupMethod,
   onDismiss,
   onConfigSaved,
 }: UseOnboardingOptions): UseOnboardingReturn {
@@ -110,7 +148,7 @@ export function useOnboarding({
     loginStatus: 'idle',
     credentialStatus: 'idle',
     completionStatus: 'saving',
-    apiSetupMethod: null,
+    apiSetupMethod: initialApiSetupMethod ?? null,
     isExistingUser: initialSetupNeeds?.needsBillingConfig ?? false,
     gitBashStatus: undefined,
     isRecheckingGitBash: false,
@@ -132,28 +170,26 @@ export function useOnboarding({
     checkGitBash()
   }, [])
 
-  // Save configuration
-  const handleSaveConfig = useCallback(async (credential?: string, options?: { baseUrl?: string; customModel?: string }) => {
+  // Save configuration using the new unified LLM connection API
+  const handleSaveConfig = useCallback(async (credential?: string, options?: { baseUrl?: string; connectionDefaultModel?: string; models?: string[] }) => {
     if (!state.apiSetupMethod) {
-      console.log('[Onboarding] No API setup method selected, returning early')
       return
     }
 
     setState(s => ({ ...s, completionStatus: 'saving' }))
 
     try {
-      const authType = apiSetupMethodToAuthType(state.apiSetupMethod)
-      console.log('[Onboarding] Saving config with authType:', authType)
-
-      const result = await window.electronAPI.saveOnboardingConfig({
-        authType,
+      // Build connection setup from UI state
+      const setup = apiSetupMethodToConnectionSetup(state.apiSetupMethod, {
         credential,
-        anthropicBaseUrl: options?.baseUrl || null,
-        customModel: options?.customModel || null,
+        baseUrl: options?.baseUrl,
+        connectionDefaultModel: options?.connectionDefaultModel,
+        models: options?.models,
       })
+      // Use new unified API
+      const result = await window.electronAPI.setupLlmConnection(setup)
 
       if (result.success) {
-        console.log('[Onboarding] Save successful')
         setState(s => ({ ...s, completionStatus: 'complete' }))
         // Notify caller immediately so UI can reflect billing/model changes
         onConfigSaved?.()
@@ -234,9 +270,11 @@ export function useOnboarding({
   }, [])
 
   // Submit credential (API key + optional endpoint config)
-  // Tests the connection first via /v1/messages before saving to catch issues early
+  // Tests the connection first before saving to catch issues early
   const handleSubmitCredential = useCallback(async (data: ApiKeySubmitData) => {
     setState(s => ({ ...s, credentialStatus: 'validating', errorMessage: undefined }))
+
+    const isOpenAiFlow = state.apiSetupMethod === 'openai_api_key'
 
     try {
       // API key is required for hosted providers (Anthropic, OpenRouter, etc.)
@@ -250,13 +288,24 @@ export function useOnboarding({
         return
       }
 
-      // Validate connection before saving — tests auth, endpoint reachability,
-      // model existence, and tool support in one call
-      const testResult = await window.electronAPI.testApiConnection(
-        data.apiKey,
-        data.baseUrl,
-        data.customModel,
-      )
+      // Validate connection before saving using provider-specific validation
+      let testResult: { success: boolean; error?: string }
+
+      if (isOpenAiFlow) {
+        // OpenAI validation - tests against /v1/models endpoint
+        testResult = await window.electronAPI.testOpenAiConnection(
+          data.apiKey,
+          data.baseUrl,
+          data.models,
+        )
+      } else {
+        // Anthropic validation - tests auth, endpoint, model, and tool support
+        testResult = await window.electronAPI.testApiConnection(
+          data.apiKey,
+          data.baseUrl,
+          data.models,
+        )
+      }
 
       if (!testResult.success) {
         setState(s => ({
@@ -269,7 +318,11 @@ export function useOnboarding({
         return
       }
 
-      await handleSaveConfig(data.apiKey, { baseUrl: data.baseUrl, customModel: data.customModel })
+      await handleSaveConfig(data.apiKey, {
+        baseUrl: data.baseUrl,
+        connectionDefaultModel: data.connectionDefaultModel,
+        models: data.models,
+      })
 
       setState(s => ({
         ...s,
@@ -283,22 +336,113 @@ export function useOnboarding({
         errorMessage: error instanceof Error ? error.message : onboardingT('onboarding:credentials.apiKey.errors.validationFailed', 'Validation failed'),
       }))
     }
-  }, [handleSaveConfig])
+  }, [handleSaveConfig, state.apiSetupMethod])
 
   // Two-step OAuth flow state
   const [isWaitingForCode, setIsWaitingForCode] = useState(false)
 
-  // Start Claude OAuth (native browser-based OAuth with PKCE - two-step flow)
-  const handleStartOAuth = useCallback(async () => {
-    setState(s => ({ ...s, errorMessage: undefined }))
+  // Copilot device code (displayed during device flow)
+  const [copilotDeviceCode, setCopilotDeviceCode] = useState<{ userCode: string; verificationUri: string } | undefined>()
+
+  // Start OAuth flow (Claude or ChatGPT depending on selected method)
+  const handleStartOAuth = useCallback(async (methodOverride?: ApiSetupMethod) => {
+    const effectiveMethod = methodOverride ?? state.apiSetupMethod
+
+    if (methodOverride && methodOverride !== state.apiSetupMethod) {
+      setState(s => ({
+        ...s,
+        apiSetupMethod: methodOverride,
+        step: 'credentials',
+        credentialStatus: 'validating',
+        errorMessage: undefined,
+      }))
+    } else {
+      setState(s => ({ ...s, credentialStatus: 'validating', errorMessage: undefined }))
+    }
+
+    if (!effectiveMethod) {
+      setState(s => ({
+        ...s,
+        credentialStatus: 'error',
+        errorMessage: 'Select an authentication method first.',
+      }))
+      return
+    }
 
     try {
-      // Start OAuth flow - this opens the browser
+      // ChatGPT OAuth (single-step flow - opens browser, captures tokens automatically)
+      if (effectiveMethod === 'chatgpt_oauth') {
+        const connectionSlug = apiSetupMethodToConnectionSetup(effectiveMethod, {}).slug
+        const result = await window.electronAPI.startChatGptOAuth(connectionSlug)
+
+        if (result.success) {
+          // Tokens captured automatically, save config and complete
+          await handleSaveConfig(undefined)
+          setState(s => ({
+            ...s,
+            credentialStatus: 'success',
+            step: 'complete',
+          }))
+        } else {
+          setState(s => ({
+            ...s,
+            credentialStatus: 'error',
+            errorMessage: result.error || 'ChatGPT authentication failed',
+          }))
+        }
+        return
+      }
+
+      // Copilot OAuth (device flow — polls for token after user enters code on GitHub)
+      if (effectiveMethod === 'copilot_oauth') {
+        const connectionSlug = apiSetupMethodToConnectionSetup(effectiveMethod, {}).slug
+
+        // Subscribe to device code event before starting the flow
+        const cleanup = window.electronAPI.onCopilotDeviceCode((data) => {
+          setCopilotDeviceCode(data)
+        })
+
+        try {
+          const result = await window.electronAPI.startCopilotOAuth(connectionSlug)
+
+          if (result.success) {
+            // Tokens captured, save config and complete
+            await handleSaveConfig(undefined)
+            setState(s => ({
+              ...s,
+              credentialStatus: 'success',
+              step: 'complete',
+            }))
+          } else {
+            setState(s => ({
+              ...s,
+              credentialStatus: 'error',
+              errorMessage: result.error || 'GitHub authentication failed',
+            }))
+          }
+        } finally {
+          cleanup()
+          setCopilotDeviceCode(undefined)
+        }
+        return
+      }
+
+      // Claude OAuth (two-step flow - opens browser, user copies code)
+      if (effectiveMethod !== 'claude_oauth') {
+        setState(s => ({
+          ...s,
+          credentialStatus: 'error',
+          errorMessage: 'This connection uses API keys, not OAuth.',
+        }))
+        return
+      }
+
       const result = await window.electronAPI.startClaudeOAuth()
 
       if (result.success) {
         // Browser opened successfully, now waiting for user to copy the code
         setIsWaitingForCode(true)
+        setState(s => ({ ...s, credentialStatus: 'idle' }))
       } else {
         setState(s => ({
           ...s,
@@ -313,7 +457,7 @@ export function useOnboarding({
         errorMessage: error instanceof Error ? error.message : onboardingT('onboarding:credentials.oauthConnect.errors.failed', 'OAuth failed'),
       }))
     }
-  }, [])
+  }, [state.apiSetupMethod, handleSaveConfig])
 
   // Submit authorization code (second step of OAuth flow)
   const handleSubmitAuthCode = useCallback(async (code: string) => {
@@ -329,7 +473,9 @@ export function useOnboarding({
     setState(s => ({ ...s, credentialStatus: 'validating', errorMessage: undefined }))
 
     try {
-      const result = await window.electronAPI.exchangeClaudeCode(code.trim())
+      // claude_oauth is the only method that uses the code exchange flow
+      const connectionSlug = apiSetupMethodToConnectionSetup('claude_oauth', {}).slug
+      const result = await window.electronAPI.exchangeClaudeCode(code.trim(), connectionSlug)
 
       if (result.success && result.token) {
         setIsWaitingForCode(false)
@@ -417,14 +563,14 @@ export function useOnboarding({
     setState(s => ({ ...s, step: 'welcome' }))
   }, [])
 
-  // Reset onboarding to initial state (used after logout)
+  // Reset onboarding to initial state (used after logout or modal close)
   const reset = useCallback(() => {
     setState({
       step: initialStep,
       loginStatus: 'idle',
       credentialStatus: 'idle',
       completionStatus: 'saving',
-      apiSetupMethod: null,
+      apiSetupMethod: initialApiSetupMethod ?? null,
       isExistingUser: false,
       errorMessage: undefined,
     })
@@ -442,6 +588,8 @@ export function useOnboarding({
     isWaitingForCode,
     handleSubmitAuthCode,
     handleCancelOAuth,
+    // Copilot device code
+    copilotDeviceCode,
     // Git Bash (Windows)
     handleBrowseGitBash,
     handleUseGitBashPath,

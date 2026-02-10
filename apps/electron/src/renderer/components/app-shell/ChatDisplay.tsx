@@ -100,7 +100,10 @@ interface ChatDisplayProps {
   onOpenUrl: (url: string) => void
   // Model selection
   currentModel: string
-  onModelChange: (model: string) => void
+  onModelChange: (model: string, connection?: string) => void
+  // Connection selection (locked after first message)
+  /** Callback when LLM connection changes (only works when session is empty) */
+  onConnectionChange?: (connectionSlug: string) => void
   /** Ref for the input, used for external focus control */
   textareaRef?: React.RefObject<RichTextInputHandle>
   /** When true, disables input (e.g., when agent needs activation) */
@@ -181,6 +184,8 @@ interface ChatDisplayProps {
   placeholder?: string | string[]
   /** Label shown as empty state in compact mode (e.g., "Permission Settings") */
   emptyStateLabel?: string
+  /** When true, the session's locked connection has been removed - disables send and shows unavailable state */
+  connectionUnavailable?: boolean
 }
 
 /**
@@ -375,6 +380,7 @@ export const ChatDisplay = React.forwardRef<ChatDisplayHandle, ChatDisplayProps>
   onOpenUrl,
   currentModel,
   onModelChange,
+  onConnectionChange,
   textareaRef: externalTextareaRef,
   disabled = false,
   pendingPermission,
@@ -422,6 +428,8 @@ export const ChatDisplay = React.forwardRef<ChatDisplayHandle, ChatDisplayProps>
   compactMode = false,
   placeholder,
   emptyStateLabel,
+  // Connection unavailable
+  connectionUnavailable = false,
 }, ref) {
   const { t } = useTranslation(['common'])
   const chatLabels = getChatDisplayLabels(t)
@@ -1011,19 +1019,38 @@ export const ChatDisplay = React.forwardRef<ChatDisplayHandle, ChatDisplayProps>
 
   // Helper to collect Edit/Write activities into FileChange array
   // Used by both onOpenActivityDetails and onOpenMultiFileDiff
+  // Supports both Claude Code format (file_path, old_string, new_string) and
+  // Codex format (changes array with path and diff fields)
   const collectFileChanges = useCallback((activities: ActivityItem[]): FileChange[] => {
     const changes: FileChange[] = []
     for (const a of activities) {
       const input = a.toolInput as Record<string, unknown> | undefined
       if (a.toolName === 'Edit' && input) {
-        changes.push({
-          id: a.id,
-          filePath: (input.file_path as string) || 'unknown',
-          toolType: 'Edit',
-          original: (input.old_string as string) || '',
-          modified: (input.new_string as string) || '',
-          error: a.error || undefined,
-        })
+        // Check for Codex format: { changes: Array<{ path, kind, diff }> }
+        if (input.changes && Array.isArray(input.changes)) {
+          // Codex fileChange format - extract each change
+          for (const codexChange of input.changes as Array<{ path?: string; kind?: unknown; diff?: string }>) {
+            changes.push({
+              id: `${a.id}-${codexChange.path || 'unknown'}`,
+              filePath: codexChange.path || 'unknown',
+              toolType: 'Edit',
+              original: '',
+              modified: '',
+              unifiedDiff: codexChange.diff,
+              error: a.error || undefined,
+            })
+          }
+        } else {
+          // Claude Code format: { file_path, old_string, new_string }
+          changes.push({
+            id: a.id,
+            filePath: (input.file_path as string) || 'unknown',
+            toolType: 'Edit',
+            original: (input.old_string as string) || '',
+            modified: (input.new_string as string) || '',
+            error: a.error || undefined,
+          })
+        }
       } else if (a.toolName === 'Write' && input) {
         changes.push({
           id: a.id,
@@ -1286,7 +1313,7 @@ export const ChatDisplay = React.forwardRef<ChatDisplayHandle, ChatDisplayProps>
                       if (turn.type === 'user') return `user-${turn.message.id}`
                       if (turn.type === 'system') return `system-${turn.message.id}`
                       if (turn.type === 'auth-request') return `auth-${turn.message.id}`
-                      return `turn-${turn.turnId}`
+                      return `turn-${turn.turnId}-${turn.timestamp}`
                     }
                     const turnKey = getTurnKey()
                     const isCurrentMatch = isSearchActive && matchingTurnIds[currentMatchIndex] === turnKey
@@ -1371,6 +1398,7 @@ export const ChatDisplay = React.forwardRef<ChatDisplayHandle, ChatDisplayProps>
                         key={turnKey}
                         ref={el => { if (el) turnRefs.current.set(turnKey, el); else turnRefs.current.delete(turnKey) }}
                         className={cn(
+                          "pt-2",
                           "rounded-lg transition-all duration-200",
                           isCurrentMatch && "ring-2 ring-info ring-offset-2 ring-offset-background",
                           isAnyMatch && !isCurrentMatch && "ring-1 ring-info/30"
@@ -1577,8 +1605,11 @@ export const ChatDisplay = React.forwardRef<ChatDisplayHandle, ChatDisplayProps>
               sessionFolderPath={sessionFolderPath}
               sessionId={session.id}
               currentTodoState={session.todoState || 'todo'}
-              disableSend={disableSend}
+              disableSend={disableSend || connectionUnavailable}
+              connectionUnavailable={connectionUnavailable}
               isEmptySession={session.messages.length === 0}
+              currentConnection={session.llmConnection}
+              onConnectionChange={onConnectionChange}
               contextStatus={{
                 isCompacting: session.currentStatus?.statusType === 'compacting',
                 inputTokens: session.tokenUsage?.inputTokens,
@@ -1607,6 +1638,7 @@ export const ChatDisplay = React.forwardRef<ChatDisplayHandle, ChatDisplayProps>
           numLines={overlayData.numLines}
           theme={isDark ? 'dark' : 'light'}
           error={overlayData.error}
+          command={overlayData.command}
         />
       )}
 

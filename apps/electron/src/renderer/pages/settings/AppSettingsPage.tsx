@@ -5,9 +5,9 @@
  *
  * Settings:
  * - Notifications
- * - API Connection (opens OnboardingWizard for editing)
  * - About (version, updates)
  *
+ * Note: AI settings (connections, model, thinking) have been moved to AiSettingsPage.
  * Note: Appearance settings (theme, font) have been moved to AppearanceSettingsPage.
  */
 
@@ -109,8 +109,8 @@ export default function AppSettingsPage() {
     }
   }, [updateChecker])
 
-  // Load current API connection info and notifications on mount
-  const loadConnectionInfo = useCallback(async () => {
+  // Load settings on mount
+  const loadSettings = useCallback(async () => {
     if (!window.electronAPI) return
     try {
       const [billing, notificationsOn, storedLanguage] = await Promise.all([
@@ -118,8 +118,6 @@ export default function AppSettingsPage() {
         window.electronAPI.getNotificationsEnabled(),
         window.electronAPI.getAppLanguage(),
       ])
-      setAuthType(billing.authType)
-      setHasCredential(billing.hasCredential)
       setNotificationsEnabled(notificationsOn)
       setAppLanguageState(storedLanguage ?? 'en')
     } catch (error) {
@@ -128,42 +126,8 @@ export default function AppSettingsPage() {
   }, [])
 
   useEffect(() => {
-    loadConnectionInfo()
+    loadSettings()
   }, [])
-
-  // Helpers to open/close the fullscreen API setup overlay
-  const openApiSetup = useCallback(() => {
-    setShowApiSetup(true)
-    setFullscreenOverlayOpen(true)
-  }, [setFullscreenOverlayOpen])
-
-  const closeApiSetup = useCallback(() => {
-    setShowApiSetup(false)
-    setFullscreenOverlayOpen(false)
-  }, [setFullscreenOverlayOpen])
-
-  // OnboardingWizard hook for editing API connection (starts at api-setup step).
-  // onConfigSaved fires immediately when billing is persisted, updating the model UI instantly.
-  const apiSetupOnboarding = useOnboarding({
-    initialStep: 'api-setup',
-    onConfigSaved: refreshCustomModel,
-    onComplete: () => {
-      closeApiSetup()
-      loadConnectionInfo()
-      apiSetupOnboarding.reset()
-    },
-    onDismiss: () => {
-      closeApiSetup()
-      apiSetupOnboarding.reset()
-    },
-  })
-
-  // Called when user completes the wizard (clicks Finish on completion step)
-  const handleApiSetupFinish = useCallback(() => {
-    closeApiSetup()
-    loadConnectionInfo()
-    apiSetupOnboarding.reset()
-  }, [closeApiSetup, loadConnectionInfo, apiSetupOnboarding])
 
   const handleNotificationsEnabledChange = useCallback(async (enabled: boolean) => {
     setNotificationsEnabled(enabled)
@@ -308,17 +272,28 @@ export default function AppSettingsPage() {
                 {updateChecker.isReadyToInstall && updateChecker.updateInfo?.latestVersion && (
                   <SettingsRow label={labels.updateReadyLabel}>
                     <Button
+                      variant="outline"
                       size="sm"
-                      onClick={updateChecker.installUpdate}
+                      onClick={handleCheckForUpdates}
+                      disabled={isCheckingForUpdates}
                     >
                       {labels.restartToUpdateLabel.replace('{{version}}', updateChecker.updateInfo.latestVersion)}
                     </Button>
                   </SettingsRow>
-                )}
-              </SettingsCard>
-            </SettingsSection>
+                  {updateChecker.isReadyToInstall && (
+                    <SettingsRow label="Install update">
+                      <Button
+                        size="sm"
+                        onClick={updateChecker.installUpdate}
+                      >
+                        Restart to Update
+                      </Button>
+                    </SettingsRow>
+                  )}
+                </SettingsCard>
+              </SettingsSection>
+            </div>
           </div>
-        </div>
         </ScrollArea>
       </div>
     </div>
