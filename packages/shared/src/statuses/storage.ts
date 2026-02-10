@@ -146,7 +146,9 @@ export function loadStatusConfig(workspaceRootPath: string): WorkspaceStatusConf
 
   const configPath = join(workspaceRootPath, STATUS_CONFIG_FILE);
 
-  // Return defaults if config doesn't exist
+  // Return defaults if config doesn't exist.
+  // IMPORTANT: This fallback does NOT rewrite existing status labels for a workspace.
+  // Localization is applied when defaults are initially seeded at workspace creation.
   if (!existsSync(configPath)) {
     return getDefaultStatusConfig();
   }

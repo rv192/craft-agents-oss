@@ -113,8 +113,9 @@ export function getDefaultLabelConfig(language?: string): WorkspaceLabelConfig {
 export function loadLabelConfig(workspaceRootPath: string): WorkspaceLabelConfig {
   const configPath = join(workspaceRootPath, LABEL_CONFIG_FILE);
 
-  // If no config file exists, seed with defaults and persist to disk.
-  // This ensures existing workspaces (created before default labels existed) get populated.
+  // If no config file exists, seed defaults once and persist to disk.
+  // IMPORTANT: We do not overwrite existing labels/config.json for localization.
+  // Existing workspaces keep their current label names for compatibility.
   if (!existsSync(configPath)) {
     const defaults = getDefaultLabelConfig();
     debug('[loadLabelConfig] No config found, seeding with default labels');
@@ -214,4 +215,3 @@ export function isValidLabelIdFormat(labelId: string): boolean {
   const SLUG_PATTERN = /^[a-z0-9]([a-z0-9-]*[a-z0-9])?$/;
   return SLUG_PATTERN.test(labelId);
 }
-

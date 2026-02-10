@@ -2,6 +2,8 @@ import { describe, it, expect } from 'bun:test'
 import { mkdirSync, rmSync, readFileSync } from 'fs'
 import { join } from 'path'
 import { createWorkspaceAtPath } from '../src/workspaces/storage'
+import { saveStatusConfig, loadStatusConfig, getDefaultStatusConfig } from '../src/statuses/storage'
+import { saveLabelConfig, loadLabelConfig, getDefaultLabelConfig } from '../src/labels/storage'
 
 describe('createWorkspaceAtPath', () => {
   it('seeds localized status and label configs when language is zh-CN', () => {
@@ -29,6 +31,37 @@ describe('createWorkspaceAtPath', () => {
       '优先级',
       '项目',
     ])
+
+    rmSync(rootPath, { recursive: true, force: true })
+  })
+
+  it('keeps existing status and label configs unchanged after initialization', () => {
+    const rootPath = join(process.cwd(), '.tmp-test-workspace-language-existing')
+
+    rmSync(rootPath, { recursive: true, force: true })
+    mkdirSync(rootPath, { recursive: true })
+
+    createWorkspaceAtPath(rootPath, 'Existing Workspace', undefined, 'en')
+
+    const existingStatus = getDefaultStatusConfig('en')
+    existingStatus.statuses = existingStatus.statuses.map((status) =>
+      status.id === 'todo' ? { ...status, label: 'My Custom Todo' } : status,
+    )
+    saveStatusConfig(rootPath, existingStatus)
+
+    const existingLabels = getDefaultLabelConfig('en')
+    existingLabels.labels = existingLabels.labels.map((label) =>
+      label.id === 'development' ? { ...label, name: 'My Dev Labels' } : label,
+    )
+    saveLabelConfig(rootPath, existingLabels)
+
+    // Simulate normal load path after app language changes.
+    // Existing persisted configs should be used as-is.
+    const loadedStatus = loadStatusConfig(rootPath)
+    const loadedLabels = loadLabelConfig(rootPath)
+
+    expect(loadedStatus.statuses.find((s: any) => s.id === 'todo')?.label).toBe('My Custom Todo')
+    expect(loadedLabels.labels.find((l: any) => l.id === 'development')?.name).toBe('My Dev Labels')
 
     rmSync(rootPath, { recursive: true, force: true })
   })

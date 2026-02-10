@@ -307,11 +307,15 @@ export function createWorkspaceAtPath(
   // Save config
   saveWorkspaceConfig(rootPath, config);
 
-  // Initialize status configuration with defaults
+  // Initialize status configuration with localized defaults.
+  // NOTE: This seed runs only at workspace creation time.
+  // Existing workspaces keep their persisted statuses/config.json unchanged.
   saveStatusConfig(rootPath, getDefaultStatusConfig(language));
   ensureDefaultIconFiles(rootPath);
 
-  // Initialize label configuration with defaults (two nested groups + valued labels)
+  // Initialize label configuration with localized defaults.
+  // NOTE: This seed runs only at workspace creation time.
+  // Existing workspaces keep their persisted labels/config.json unchanged.
   saveLabelConfig(rootPath, getDefaultLabelConfig(language));
 
   // Initialize plugin manifest for SDK integration (enables skills, commands, agents)
