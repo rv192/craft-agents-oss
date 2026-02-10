@@ -1,0 +1,143 @@
+name: Upstream Release Sync
+
+on:
+  schedule:
+    - cron: '0 */6 * * *'
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Optional upstream tag (e.g. v0.3.5)'
+        required: false
+        type: string
+      i18n_branch:
+        description: 'i18n overlay branch name'
+        required: false
+        type: string
+        default: feat/issue-31-i18n-zhcn
+
+permissions:
+  contents: write
+  pull-requests: write
+  issues: write
+
+concurrency:
+  group: upstream-sync-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    env:
+      UPSTREAM_REPO: lukilabs/craft-agents-oss
+      TARGET_BRANCH: main
+      I18N_BRANCH: ${{ inputs.i18n_branch || 'feat/issue-31-i18n-zhcn' }}
+    steps:
+      - name: Checkout fork repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Resolve upstream tag
+        id: release
+        env:
+          INPUT_TAG: ${{ inputs.tag }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          if [ -n "${INPUT_TAG:-}" ]; then
+            TAG="$INPUT_TAG"
+            URL="https://github.com/${UPSTREAM_REPO}/releases/tag/${TAG}"
+          else
+            TAG="$(gh release view --repo "$UPSTREAM_REPO" --json tagName -q '.tagName')"
+            URL="$(gh release view --repo "$UPSTREAM_REPO" --json url -q '.url')"
+          fi
+
+          if [ -z "$TAG" ]; then
+            echo "Failed to resolve upstream tag" >&2
+            exit 1
+          fi
+
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+          echo "url=$URL" >> "$GITHUB_OUTPUT"
+
+      - name: Check existing release in fork
+        id: exists
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          if gh release view "${{ steps.release.outputs.tag }}" --json tagName >/dev/null 2>&1; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Stop if release already exists
+        if: steps.exists.outputs.exists == 'true'
+        run: |
+          echo "Release ${{ steps.release.outputs.tag }} already exists in fork. Skip."
+
+      - name: Configure git remotes
+        if: steps.exists.outputs.exists == 'false'
+        run: |
+          set -euo pipefail
+          git remote add upstream "https://github.com/${UPSTREAM_REPO}.git"
+          git fetch --tags upstream
+          git fetch origin
+
+      - name: Create integration branch and merge i18n
+        if: steps.exists.outputs.exists == 'false'
+        id: integrate
+        run: |
+          set -euo pipefail
+          TAG="${{ steps.release.outputs.tag }}"
+          RELEASE_BRANCH="release/${TAG}-zh"
+
+          git checkout -B "$RELEASE_BRANCH" "$TAG"
+
+          if ! git merge --no-ff "origin/${I18N_BRANCH}" -m "Merge i18n overlay ${I18N_BRANCH} into ${RELEASE_BRANCH}"; then
+            echo "conflict=true" >> "$GITHUB_OUTPUT"
+            CONFLICT_FILES="$(git diff --name-only --diff-filter=U | tr '\n' ',' | sed 's/,$//')"
+            echo "conflict_files=$CONFLICT_FILES" >> "$GITHUB_OUTPUT"
+            git merge --abort || true
+            exit 0
+          fi
+
+          echo "conflict=false" >> "$GITHUB_OUTPUT"
+          echo "release_branch=$RELEASE_BRANCH" >> "$GITHUB_OUTPUT"
+
+      - name: Open issue for merge conflicts
+        if: steps.exists.outputs.exists == 'false' && steps.integrate.outputs.conflict == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          gh issue create \
+            --title "[release-sync] merge conflict on ${{ steps.release.outputs.tag }}" \
+            --body "Automatic merge failed for tag ${{ steps.release.outputs.tag }}.\n\nConflicted files:\n${{ steps.integrate.outputs.conflict_files }}\n\nPlease resolve manually." \
+            --label release-sync || true
+
+      - name: Push release branch
+        if: steps.exists.outputs.exists == 'false' && steps.integrate.outputs.conflict == 'false'
+        run: |
+          set -euo pipefail
+          git push -u origin "${{ steps.integrate.outputs.release_branch }}"
+
+      - name: Open or update PR to main
+        if: steps.exists.outputs.exists == 'false' && steps.integrate.outputs.conflict == 'false'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          TITLE="[release-sync] ${{ steps.release.outputs.tag }} bilingual release"
+          BODY="This PR integrates upstream tag ${{ steps.release.outputs.tag }} with i18n branch ${I18N_BRANCH}.\n\n- Upstream release: ${{ steps.release.outputs.url }}\n- Target branch: ${TARGET_BRANCH}\n"
+
+          if [ -n "$(gh pr list --head "${{ steps.integrate.outputs.release_branch }}" --base "$TARGET_BRANCH" --json number -q '.[0].number')" ]; then
+            echo "PR already exists for ${{ steps.integrate.outputs.release_branch }}"
+          else
+            gh pr create \
+              --base "$TARGET_BRANCH" \
+              --head "${{ steps.integrate.outputs.release_branch }}" \
+              --title "$TITLE" \
+              --body "$BODY"
+          fi

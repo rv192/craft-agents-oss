@@ -1,0 +1,168 @@
+name: Build and Publish Bilingual Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      release_branch:
+        description: 'Release integration branch (e.g. release/v0.3.5-zh)'
+        required: true
+        type: string
+      tag:
+        description: 'Release tag (e.g. v0.3.5)'
+        required: true
+        type: string
+      upstream_repo:
+        description: 'Upstream repository'
+        required: false
+        type: string
+        default: lukilabs/craft-agents-oss
+      publish:
+        description: 'Publish release (false = draft only)'
+        required: false
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release-${{ inputs.tag }}
+  cancel-in-progress: false
+
+jobs:
+  prepare-notes:
+    runs-on: ubuntu-latest
+    outputs:
+      release_body_path: ${{ steps.paths.outputs.release_body_path }}
+      upstream_release_url: ${{ steps.upstream.outputs.url }}
+    steps:
+      - name: Checkout release branch
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.release_branch }}
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Get upstream release body
+        id: upstream
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          gh release view "${{ inputs.tag }}" --repo "${{ inputs.upstream_repo }}" --json body,url -q '.body' > english-notes.md
+          URL="$(gh release view "${{ inputs.tag }}" --repo "${{ inputs.upstream_repo }}" --json url -q '.url')"
+          echo "url=$URL" >> "$GITHUB_OUTPUT"
+
+      - name: Translate English notes to Chinese
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          RELEASE_TRANSLATION_MODEL: ${{ vars.RELEASE_TRANSLATION_MODEL }}
+        run: |
+          set -euo pipefail
+          python3 scripts/release/translate-notes.py english-notes.md chinese-notes.md
+
+      - name: Compose bilingual release body
+        run: |
+          set -euo pipefail
+          bun run scripts/release/compose-release-notes.ts \
+            "${{ inputs.tag }}" \
+            "${{ inputs.upstream_repo }}" \
+            "${{ steps.upstream.outputs.url }}" \
+            english-notes.md \
+            chinese-notes.md \
+            release-body.md
+
+      - name: Upload release body artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-body
+          path: release-body.md
+
+      - name: Expose output paths
+        id: paths
+        run: |
+          echo "release_body_path=release-body.md" >> "$GITHUB_OUTPUT"
+
+  build:
+    runs-on: ubuntu-latest
+    needs: prepare-notes
+    steps:
+      - name: Checkout release branch
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.release_branch }}
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Build Electron app
+        run: bun run electron:build
+
+      - name: Package Linux artifact
+        run: |
+          set -euo pipefail
+          npx electron-builder --config apps/electron/electron-builder.yml --project apps/electron --linux --x64
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-assets
+          path: |
+            apps/electron/release/*.AppImage
+            apps/electron/release/*.yml
+
+  release:
+    runs-on: ubuntu-latest
+    needs: [prepare-notes, build]
+    steps:
+      - name: Download release body
+        uses: actions/download-artifact@v4
+        with:
+          name: release-body
+
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: release-assets
+          path: release-assets
+
+      - name: Create or update draft release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          TITLE="${{ inputs.tag }} (i18n bilingual)"
+
+          if gh release view "${{ inputs.tag }}" >/dev/null 2>&1; then
+            gh release edit "${{ inputs.tag }}" \
+              --title "$TITLE" \
+              --notes-file release-body.md \
+              --draft
+          else
+            gh release create "${{ inputs.tag }}" \
+              --title "$TITLE" \
+              --notes-file release-body.md \
+              --draft
+          fi
+
+      - name: Upload assets to release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          gh release upload "${{ inputs.tag }}" release-assets/* --clobber
+
+      - name: Publish release
+        if: inputs.publish == true
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          gh release edit "${{ inputs.tag }}" --draft=false
