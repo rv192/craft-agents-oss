@@ -141,13 +141,15 @@ jobs:
           set -euo pipefail
           TITLE="${{ inputs.tag }} (i18n bilingual)"
 
-          if gh release view "${{ inputs.tag }}" >/dev/null 2>&1; then
+          if gh release view "${{ inputs.tag }}" --repo "${{ github.repository }}" >/dev/null 2>&1; then
             gh release edit "${{ inputs.tag }}" \
+              --repo "${{ github.repository }}" \
               --title "$TITLE" \
               --notes-file release-body.md \
               --draft
           else
             gh release create "${{ inputs.tag }}" \
+              --repo "${{ github.repository }}" \
               --title "$TITLE" \
               --notes-file release-body.md \
               --draft
@@ -158,7 +160,7 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           set -euo pipefail
-          gh release upload "${{ inputs.tag }}" release-assets/* --clobber
+          gh release upload "${{ inputs.tag }}" release-assets/* --repo "${{ github.repository }}" --clobber
 
       - name: Publish release
         if: inputs.publish == true
@@ -166,4 +168,4 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           set -euo pipefail
-          gh release edit "${{ inputs.tag }}" --draft=false
+          gh release edit "${{ inputs.tag }}" --repo "${{ github.repository }}" --draft=false
