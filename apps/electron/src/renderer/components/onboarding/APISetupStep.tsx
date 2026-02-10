@@ -3,6 +3,7 @@ import { Check, CreditCard, Key } from "lucide-react"
 import { StepFormLayout, BackButton, ContinueButton } from "./primitives"
 import type { TFunction } from "i18next"
 import { useTranslation } from "react-i18next"
+import { getApiSetupLabels } from './labels'
 
 export type ApiSetupMethod = 'api_key' | 'claude_oauth'
 
@@ -54,14 +55,15 @@ export function APISetupStep({
 }: APISetupStepProps) {
   const { t } = useTranslation(['onboarding'])
   const options = getApiSetupOptions(t)
+  const labels = getApiSetupLabels(t)
   return (
     <StepFormLayout
-      title={t('onboarding:apiSetup.title')}
-      description={t('onboarding:apiSetup.description')}
+      title={labels.title}
+      description={labels.description}
       actions={
         <>
-          <BackButton onClick={onBack} />
-          <ContinueButton onClick={onContinue} disabled={!selectedMethod} />
+          <BackButton onClick={onBack}>{labels.back}</BackButton>
+          <ContinueButton onClick={onContinue} disabled={!selectedMethod}>{labels.continue}</ContinueButton>
         </>
       }
     >
@@ -100,7 +102,7 @@ export function APISetupStep({
                   <span className="font-medium text-sm">{option.name}</span>
                   {option.recommended && (
                     <span className="rounded-[4px] bg-background shadow-minimal px-2 py-0.5 text-[11px] font-medium text-foreground/70">
-                      {t('onboarding:apiSetup.recommended')}
+                      {labels.recommended}
                     </span>
                   )}
                 </div>
