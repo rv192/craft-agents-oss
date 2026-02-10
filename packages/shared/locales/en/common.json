@@ -81,7 +81,38 @@
     "emptyTitle": "No skills configured",
     "emptyDescription": "Skills are reusable instructions that teach your agent specialized behaviors.",
     "learnMore": "Learn more",
-    "addSkill": "Add Skill"
+    "addSkill": "Add Skill",
+    "addSkillPlaceholder": "What should I learn to do?"
+  },
+  "labels": {
+    "addLabelPlaceholder": "What label would you like to create?"
+  },
+  "editPopover": {
+    "basePlaceholder": "Describe what you'd like to change...",
+    "placeholderWithExample": "{{placeholder}}, e.g., \"{{example}}\"",
+    "compact": {
+      "justTellMe": "Just tell me what to change",
+      "describeUpdate": "Describe your update",
+      "whatModify": "What should I modify?"
+    },
+    "examples": {
+      "workspacePermissions": "Allow running 'make build' in Explore mode",
+      "defaultPermissions": "Allow git fetch command",
+      "skillInstructions": "Add error handling guidelines",
+      "skillMetadata": "Update the skill description",
+      "sourceGuide": "Add rate limit documentation",
+      "sourceConfig": "Update the display name",
+      "sourcePermissions": "Allow list operations in Explore mode",
+      "sourceToolPermissions": "Only allow read operations (list, get, search)",
+      "preferencesNotes": "Add coding style preferences",
+      "addSkill": "Review PRs following our code standards",
+      "editStatuses": "Add a \"Blocked\" status",
+      "editLabels": "Add a \"Bug\" label with red color",
+      "editAutoRules": "Add a rule to detect GitHub issue URLs",
+      "addLabel": "A red \"Bug\" label",
+      "editViews": "Add a \"Stale\" view for sessions inactive > 7 days",
+      "editToolIcons": "Add an icon for my custom CLI tool \"deploy\""
+    }
   },
   "labelsMenu": {
     "states": "States"
@@ -123,6 +154,7 @@
     "revert": "Revert",
     "reset": "Reset",
     "delete": "Delete",
+    "remove": "Remove",
     "done": "Done",
     "editFile": "Edit File"
   },

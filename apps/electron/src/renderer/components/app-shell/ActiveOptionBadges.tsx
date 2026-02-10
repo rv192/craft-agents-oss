@@ -1,4 +1,5 @@
 import * as React from 'react'
+import { useTranslation } from 'react-i18next'
 import { cn } from '@/lib/utils'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { SlashCommandMenu, DEFAULT_SLASH_COMMAND_GROUPS, type SlashCommandId } from '@/components/ui/slash-command-menu'
@@ -15,6 +16,7 @@ import { useDynamicStack } from '@/hooks/useDynamicStack'
 import type { TodoState } from '@/config/todo-states'
 import { getState } from '@/config/todo-states'
 import { TodoStateMenu } from '@/components/ui/todo-filter-menu'
+import { getActiveOptionBadgesLabels } from './active-option-badges-labels'
 
 // ============================================================================
 // Permission Mode Icon Component
@@ -31,6 +33,8 @@ function PermissionModeIcon({ mode, className }: { mode: PermissionMode; classNa
       strokeLinecap="round"
       strokeLinejoin="round"
       className={className}
+      aria-hidden="true"
+      focusable="false"
     >
       <path d={config.svgPath} />
     </svg>
@@ -104,6 +108,9 @@ export function ActiveOptionBadges({
   onTodoStateChange,
   className,
 }: ActiveOptionBadgesProps) {
+  const { t } = useTranslation(['common'])
+  const labelsI18n = getActiveOptionBadgesLabels(t)
+
   // Resolve session label entries to their config objects + parsed values.
   // Entries may be bare IDs ("bug") or valued ("priority::3").
   // Preserves the raw value and original index for editing/removal.
@@ -168,7 +175,7 @@ export function ActiveOptionBadges({
           style={{ '--shadow-color': '147, 51, 234' } as React.CSSProperties}
         >
           <span className="bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
-            Ultrathink
+            {labelsI18n.ultrathink}
           </span>
           <X className="h-3 w-3 text-purple-500 opacity-60 hover:opacity-100 translate-y-px" />
         </button>
@@ -509,4 +516,3 @@ function PermissionModeDropdown({ permissionMode, ultrathinkEnabled = false, onP
     </Popover>
   )
 }
-
