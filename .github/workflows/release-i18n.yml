@@ -61,7 +61,7 @@ jobs:
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           RELEASE_TRANSLATION_MODEL: ${{ vars.RELEASE_TRANSLATION_MODEL }}
-          RELEASE_TRANSLATION_BASE_URL: ${{ vars.RELEASE_TRANSLATION_BASE_URL }}
+          RELEASE_TRANSLATION_BASE_URL: ${{ vars.RELEASE_TRANSLATION_BASE_URL || vars.BASE_URL }}
         run: |
           set -euo pipefail
           bun run scripts/release/translate-notes.ts english-notes.md chinese-notes.md
