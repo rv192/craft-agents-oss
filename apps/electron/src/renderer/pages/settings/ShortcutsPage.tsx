@@ -8,6 +8,7 @@ import * as React from 'react'
 import { PanelHeader } from '@/components/app-shell/PanelHeader'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { SettingsSection, SettingsCard, SettingsRow } from '@/components/settings'
+import { useTranslation } from 'react-i18next'
 import type { DetailsPageMeta } from '@/lib/navigation-registry'
 import { isMac } from '@/lib/platform'
 
@@ -16,58 +17,52 @@ export const meta: DetailsPageMeta = {
   slug: 'shortcuts',
 }
 
-interface ShortcutItem {
-  keys: string[]
-  description: string
-}
-
-interface ShortcutSection {
-  title: string
-  shortcuts: ShortcutItem[]
+export function getShortcutsLabels(t: (key: string) => string) {
+  return [
+    {
+      title: t('settings:shortcuts.sections.global.title'),
+      shortcuts: [
+        { keys: ['cmdKey', '1'], description: t('settings:shortcuts.sections.global.focusSidebar') },
+        { keys: ['cmdKey', '2'], description: t('settings:shortcuts.sections.global.focusSessionList') },
+        { keys: ['cmdKey', '3'], description: t('settings:shortcuts.sections.global.focusChatInput') },
+        { keys: ['cmdKey', 'N'], description: t('settings:shortcuts.sections.global.newChat') },
+        { keys: ['cmdKey', 'B'], description: t('settings:shortcuts.sections.global.toggleSidebar') },
+        { keys: ['cmdKey', ','], description: t('settings:shortcuts.sections.global.openSettings') },
+      ],
+    },
+    {
+      title: t('settings:shortcuts.sections.navigation.title'),
+      shortcuts: [
+        { keys: ['Tab'], description: t('settings:shortcuts.sections.navigation.moveNextZone') },
+        { keys: ['Shift', 'Tab'], description: t('settings:shortcuts.sections.navigation.cyclePermissionMode') },
+        { keys: ['←', '→'], description: t('settings:shortcuts.sections.navigation.moveBetweenZones') },
+        { keys: ['↑', '↓'], description: t('settings:shortcuts.sections.navigation.navigateItems') },
+        { keys: ['Home'], description: t('settings:shortcuts.sections.navigation.goToFirstItem') },
+        { keys: ['End'], description: t('settings:shortcuts.sections.navigation.goToLastItem') },
+        { keys: ['Esc'], description: t('settings:shortcuts.sections.navigation.closeDialog') },
+      ],
+    },
+    {
+      title: t('settings:shortcuts.sections.sessionList.title'),
+      shortcuts: [
+        { keys: ['Enter'], description: t('settings:shortcuts.sections.sessionList.sessionFocusChatInput') },
+        { keys: ['Delete'], description: t('settings:shortcuts.sections.sessionList.deleteSession') },
+      ],
+    },
+    {
+      title: t('settings:shortcuts.sections.chat.title'),
+      shortcuts: [
+        { keys: ['Enter'], description: t('settings:shortcuts.sections.chat.sendMessage') },
+        { keys: ['Shift', 'Enter'], description: t('settings:shortcuts.sections.chat.newLine') },
+        { keys: ['cmdKey', 'Enter'], description: t('settings:shortcuts.sections.chat.sendMessageAlt') },
+      ],
+    },
+  ]
 }
 
 const cmdKey = isMac ? '⌘' : 'Ctrl'
 
-const sections: ShortcutSection[] = [
-  {
-    title: 'Global',
-    shortcuts: [
-      { keys: [cmdKey, '1'], description: 'Focus sidebar' },
-      { keys: [cmdKey, '2'], description: 'Focus session list' },
-      { keys: [cmdKey, '3'], description: 'Focus chat input' },
-      { keys: [cmdKey, 'N'], description: 'New chat' },
-      { keys: [cmdKey, 'B'], description: 'Toggle sidebar' },
-      { keys: [cmdKey, ','], description: 'Open settings' },
-    ],
-  },
-  {
-    title: 'Navigation',
-    shortcuts: [
-      { keys: ['Tab'], description: 'Move to next zone' },
-      { keys: ['Shift', 'Tab'], description: 'Cycle permission mode' },
-      { keys: ['←', '→'], description: 'Move between zones (in lists)' },
-      { keys: ['↑', '↓'], description: 'Navigate items in list' },
-      { keys: ['Home'], description: 'Go to first item' },
-      { keys: ['End'], description: 'Go to last item' },
-      { keys: ['Esc'], description: 'Close dialog / blur input' },
-    ],
-  },
-  {
-    title: 'Session List',
-    shortcuts: [
-      { keys: ['Enter'], description: 'Focus chat input' },
-      { keys: ['Delete'], description: 'Delete session' },
-    ],
-  },
-  {
-    title: 'Chat',
-    shortcuts: [
-      { keys: ['Enter'], description: 'Send message' },
-      { keys: ['Shift', 'Enter'], description: 'New line' },
-      { keys: [cmdKey, 'Enter'], description: 'Send message' },
-    ],
-  },
-]
+
 
 function Kbd({ children }: { children: React.ReactNode }) {
   return (
@@ -78,13 +73,22 @@ function Kbd({ children }: { children: React.ReactNode }) {
 }
 
 export default function ShortcutsPage() {
+  const { t } = useTranslation(['settings'])
+  const localizedSections = getShortcutsLabels(t).map((section) => ({
+    title: section.title,
+    shortcuts: section.shortcuts.map((shortcut) => ({
+      ...shortcut,
+      keys: shortcut.keys.map((key) => (key === 'cmdKey' ? cmdKey : key)),
+    })),
+  }))
+
   return (
     <div className="h-full flex flex-col">
-      <PanelHeader title="Shortcuts" />
+      <PanelHeader title={t('settings:shortcuts.pageTitle')} />
       <div className="flex-1 min-h-0 mask-fade-y">
         <ScrollArea className="h-full">
           <div className="px-5 py-7 max-w-3xl mx-auto space-y-8">
-            {sections.map((section) => (
+            {localizedSections.map((section) => (
               <SettingsSection key={section.title} title={section.title}>
                 <SettingsCard>
                   {section.shortcuts.map((shortcut, index) => (

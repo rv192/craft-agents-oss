@@ -6,8 +6,10 @@
  */
 
 import { ExternalLink } from "lucide-react"
+import { useTranslation } from "react-i18next"
 import type { ApiSetupMethod } from "./APISetupStep"
 import { StepFormLayout, BackButton, ContinueButton } from "./primitives"
+import { getCredentialsLabels } from './labels'
 import {
   ApiKeyInput,
   type ApiKeyStatus,
@@ -42,6 +44,8 @@ export function CredentialsStep({
   onSubmitAuthCode,
   onCancelOAuth,
 }: CredentialsStepProps) {
+  const { t } = useTranslation(['onboarding'])
+  const labels = getCredentialsLabels(t)
   const isOAuth = apiSetupMethod === 'claude_oauth'
 
   // --- OAuth flow ---
@@ -50,18 +54,22 @@ export function CredentialsStep({
     if (isWaitingForCode) {
       return (
         <StepFormLayout
-          title="Enter Authorization Code"
-          description="Copy the code from the browser page and paste it below."
+          title={t('onboarding:credentials.oauthCode.title')}
+          description={t('onboarding:credentials.oauthCode.description')}
           actions={
             <>
-              <BackButton onClick={onCancelOAuth} disabled={status === 'validating'}>Cancel</BackButton>
+              <BackButton onClick={onCancelOAuth} disabled={status === 'validating'}>
+                {t('onboarding:credentials.oauthCode.cancel')}
+              </BackButton>
               <ContinueButton
                 type="submit"
                 form="auth-code-form"
                 disabled={false}
                 loading={status === 'validating'}
-                loadingText="Connecting..."
-              />
+                loadingText={t('onboarding:credentials.oauthCode.loading')}
+              >
+                {labels.continue}
+              </ContinueButton>
             </>
           }
         >
@@ -79,19 +87,19 @@ export function CredentialsStep({
 
     return (
       <StepFormLayout
-        title="Connect Claude Account"
-        description="Use your Claude subscription to power multi-agent workflows."
-        actions={
-          <>
-            <BackButton onClick={onBack} disabled={status === 'validating'} />
-            <ContinueButton
-              onClick={onStartOAuth}
-              className="gap-2"
-              loading={status === 'validating'}
-              loadingText="Connecting..."
+        title={t('onboarding:credentials.oauthConnect.title')}
+        description={t('onboarding:credentials.oauthConnect.description')}
+          actions={
+            <>
+              <BackButton onClick={onBack} disabled={status === 'validating'}>{labels.back}</BackButton>
+              <ContinueButton
+                onClick={onStartOAuth}
+                className="gap-2"
+                loading={status === 'validating'}
+              loadingText={t('onboarding:credentials.oauthConnect.loading')}
             >
               <ExternalLink className="size-4" />
-              Sign in with Claude
+              {t('onboarding:credentials.oauthConnect.button')}
             </ContinueButton>
           </>
         }
@@ -111,18 +119,20 @@ export function CredentialsStep({
   // --- API Key flow ---
   return (
     <StepFormLayout
-      title="API Configuration"
-      description="Enter your API key. Optionally configure a custom endpoint for OpenRouter, Ollama, or compatible APIs."
+      title={t('onboarding:credentials.apiKey.title')}
+      description={t('onboarding:credentials.apiKey.description')}
       actions={
         <>
-          <BackButton onClick={onBack} disabled={status === 'validating'} />
+          <BackButton onClick={onBack} disabled={status === 'validating'}>{labels.back}</BackButton>
           <ContinueButton
             type="submit"
             form="api-key-form"
             disabled={false}
             loading={status === 'validating'}
-            loadingText="Validating..."
-          />
+            loadingText={t('onboarding:credentials.apiKey.loading')}
+          >
+            {labels.continue}
+          </ContinueButton>
         </>
       }
     >
@@ -130,6 +140,15 @@ export function CredentialsStep({
         status={status as ApiKeyStatus}
         errorMessage={errorMessage}
         onSubmit={onSubmit}
+        customModelDefaultHint={labels.customModelDefaultHint}
+        nonClaudeHint={labels.nonClaudeHint}
+        modelFormatPrefix={labels.formatPrefix}
+        browseModelsLabel={labels.browseModels}
+        viewSupportedModelsLabel={labels.viewSupportedModels}
+        ollamaHint={labels.ollamaHint}
+        customModelLabel={labels.customModelLabel}
+        optionalLabel={labels.optional}
+        customPresetLabel={labels.customPreset}
       />
     </StepFormLayout>
   )

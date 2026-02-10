@@ -20,9 +20,9 @@ import { useAppShellContext } from '@/context/AppShellContext'
 import { cn } from '@/lib/utils'
 import { routes } from '@/lib/navigate'
 import { Spinner } from '@craft-agent/ui'
+import { useTranslation } from 'react-i18next'
 import { RenameDialog } from '@/components/ui/rename-dialog'
 import type { PermissionMode, ThinkingLevel, WorkspaceSettings } from '../../../shared/types'
-import { PERMISSION_MODE_CONFIG } from '@craft-agent/shared/agent/mode-types'
 import { DEFAULT_THINKING_LEVEL, THINKING_LEVELS } from '@craft-agent/shared/agent/thinking-levels'
 import type { DetailsPageMeta } from '@/lib/navigation-registry'
 
@@ -33,6 +33,9 @@ import {
   SettingsToggle,
   SettingsMenuSelectRow,
 } from '@/components/settings'
+import { getWorkspaceLabels } from './workspace-settings-labels'
+
+export { getWorkspaceLabels } from './workspace-settings-labels'
 
 export const meta: DetailsPageMeta = {
   navigator: 'settings',
@@ -44,6 +47,8 @@ export const meta: DetailsPageMeta = {
 // ============================================
 
 export default function WorkspaceSettingsPage() {
+  const { t } = useTranslation(['settings'])
+  const labels = getWorkspaceLabels(t)
   // Get model, onModelChange, and active workspace from context
   const appShellContext = useAppShellContext()
   const onModelChange = appShellContext.onModelChange
@@ -267,7 +272,7 @@ export default function WorkspaceSettingsPage() {
 
       // Validate: at least 2 modes required
       if (newModes.length < 2) {
-        setModeCyclingError('At least 2 modes required')
+        setModeCyclingError(labels.modeCyclingError)
         // Auto-dismiss after 2 seconds
         setTimeout(() => {
           setModeCyclingError(null)
@@ -284,16 +289,16 @@ export default function WorkspaceSettingsPage() {
         console.error('Failed to save mode cycling settings:', error)
       }
     },
-    [enabledModes, updateWorkspaceSetting]
+    [enabledModes, labels.modeCyclingError, updateWorkspaceSetting]
   )
 
   // Show empty state if no workspace is active
   if (!activeWorkspaceId) {
     return (
       <div className="h-full flex flex-col">
-        <PanelHeader title="Workspace Settings" actions={<HeaderMenu route={routes.view.settings('workspace')} helpFeature="workspaces" />} />
+        <PanelHeader title={labels.pageTitle} actions={<HeaderMenu route={routes.view.settings('workspace')} helpFeature="workspaces" />} />
         <div className="flex-1 flex items-center justify-center">
-          <p className="text-sm text-muted-foreground">No workspace selected</p>
+          <p className="text-sm text-muted-foreground">{labels.emptyState}</p>
         </div>
       </div>
     )
@@ -303,7 +308,7 @@ export default function WorkspaceSettingsPage() {
   if (isLoadingWorkspace) {
     return (
       <div className="h-full flex flex-col">
-        <PanelHeader title="Workspace Settings" actions={<HeaderMenu route={routes.view.settings('workspace')} helpFeature="workspaces" />} />
+        <PanelHeader title={labels.loadingTitle} actions={<HeaderMenu route={routes.view.settings('workspace')} helpFeature="workspaces" />} />
         <div className="flex-1 flex items-center justify-center">
           <Spinner className="text-muted-foreground" />
         </div>
@@ -313,17 +318,17 @@ export default function WorkspaceSettingsPage() {
 
   return (
     <div className="h-full flex flex-col">
-      <PanelHeader title="Workspace Settings" actions={<HeaderMenu route={routes.view.settings('workspace')} helpFeature="workspaces" />} />
+      <PanelHeader title={labels.pageTitle} actions={<HeaderMenu route={routes.view.settings('workspace')} helpFeature="workspaces" />} />
       <div className="flex-1 min-h-0 mask-fade-y">
         <ScrollArea className="h-full">
           <div className="px-5 py-7 max-w-3xl mx-auto">
           <div className="space-y-8">
             {/* Workspace Info */}
-            <SettingsSection title="Workspace Info">
+            <SettingsSection title={labels.workspaceInfoTitle}>
               <SettingsCard>
                 <SettingsRow
-                  label="Name"
-                  description={wsName || 'Untitled'}
+                  label={labels.nameLabel}
+                  description={wsName || labels.namePlaceholder}
                   action={
                     <button
                       type="button"
@@ -333,12 +338,12 @@ export default function WorkspaceSettingsPage() {
                       }}
                       className="inline-flex items-center h-8 px-3 text-sm rounded-lg bg-background shadow-minimal hover:bg-foreground/[0.02] transition-colors"
                     >
-                      Edit
+                      {labels.editLabel}
                     </button>
                   }
                 />
                 <SettingsRow
-                  label="Icon"
+                  label={labels.iconLabel}
                   action={
                     <label className="cursor-pointer">
                       <input
@@ -349,7 +354,7 @@ export default function WorkspaceSettingsPage() {
                         disabled={isUploadingIcon}
                       />
                       <span className="inline-flex items-center h-8 px-3 text-sm rounded-lg bg-background shadow-minimal hover:bg-foreground/[0.02] transition-colors">
-                        {isUploadingIcon ? 'Uploading...' : 'Change'}
+                        {isUploadingIcon ? labels.iconUploadingLabel : labels.iconChangeLabel}
                       </span>
                     </label>
                   }
@@ -376,7 +381,7 @@ export default function WorkspaceSettingsPage() {
               <RenameDialog
                 open={renameDialogOpen}
                 onOpenChange={setRenameDialogOpen}
-                title="Rename workspace"
+                title={labels.renameTitle}
                 value={wsNameEditing}
                 onValueChange={setWsNameEditing}
                 onSubmit={() => {
@@ -388,61 +393,60 @@ export default function WorkspaceSettingsPage() {
                   }
                   setRenameDialogOpen(false)
                 }}
-                placeholder="Enter workspace name..."
+                placeholder={labels.renamePlaceholder}
               />
             </SettingsSection>
 
             {/* Model */}
-            <SettingsSection title="Model">
+            <SettingsSection title={labels.modelTitle}>
               <SettingsCard>
                 {/* When a custom API connection is active, model is fixed — show info instead of selector */}
                 {customModel ? (
                   <SettingsRow
-                    label="Default model"
-                    description="Set via API connection"
+                    label={labels.defaultModelLabel}
+                    description={labels.defaultModelFixedDescription}
                   >
                     <span className="text-sm text-muted-foreground">{customModel}</span>
                   </SettingsRow>
                 ) : (
                   <SettingsMenuSelectRow
-                    label="Default model"
-                    description="AI model for new chats"
+                    label={labels.defaultModelLabel}
+                    description={labels.defaultModelDescription}
                     value={wsModel}
                     onValueChange={handleModelChange}
                     options={[
-                      { value: 'claude-opus-4-6', label: 'Opus 4.6', description: 'Most capable for complex work' },
-                      { value: 'claude-opus-4-5-20251101', label: 'Opus 4.5', description: 'Previous generation' },
-                      { value: 'claude-sonnet-4-5-20250929', label: 'Sonnet 4.5', description: 'Best for everyday tasks' },
-                      { value: 'claude-haiku-4-5-20251001', label: 'Haiku 4.5', description: 'Fastest for quick answers' },
+                      { value: 'claude-opus-4-5-20251101', label: 'Opus 4.5', description: labels.modelOpusDescription },
+                      { value: 'claude-sonnet-4-5-20250929', label: 'Sonnet 4.5', description: labels.modelSonnetDescription },
+                      { value: 'claude-haiku-4-5-20251001', label: 'Haiku 4.5', description: labels.modelHaikuDescription },
                     ]}
                   />
                 )}
                 <SettingsMenuSelectRow
-                  label="Thinking level"
-                  description="Reasoning depth for new chats"
+                  label={labels.thinkingLevelLabel}
+                  description={labels.thinkingLevelDescription}
                   value={wsThinkingLevel}
                   onValueChange={(v) => handleThinkingLevelChange(v as ThinkingLevel)}
-                  options={THINKING_LEVELS.map(({ id, name, description }) => ({
+                  options={THINKING_LEVELS.map(({ id }) => ({
                     value: id,
-                    label: name,
-                    description,
+                    label: id === 'off' ? labels.thinkingOffLabel : id === 'think' ? labels.thinkingLabel : labels.thinkingMaxLabel,
+                    description: id === 'off' ? labels.thinkingOffDescription : id === 'think' ? labels.thinkingDescription : labels.thinkingMaxDescription,
                   }))}
                 />
               </SettingsCard>
             </SettingsSection>
 
             {/* Permissions */}
-            <SettingsSection title="Permissions">
+            <SettingsSection title={labels.permissionsTitle}>
               <SettingsCard>
                 <SettingsMenuSelectRow
-                  label="Default mode"
-                  description="Control what AI can do"
+                  label={labels.defaultModeLabel}
+                  description={labels.defaultModeDescription}
                   value={permissionMode}
                   onValueChange={(v) => handlePermissionModeChange(v as PermissionMode)}
                   options={[
-                    { value: 'safe', label: PERMISSION_MODE_CONFIG['safe'].shortName, description: 'Read-only, no changes allowed' },
-                    { value: 'ask', label: PERMISSION_MODE_CONFIG['ask'].shortName, description: 'Prompts before making edits' },
-                    { value: 'allow-all', label: PERMISSION_MODE_CONFIG['allow-all'].shortName, description: 'Full autonomous execution' },
+                    { value: 'safe', label: labels.modeSafeLabel, description: labels.modeSafeDescription },
+                    { value: 'ask', label: labels.modeAskLabel, description: labels.modeAskDescription },
+                    { value: 'allow-all', label: labels.modeAllowAllLabel, description: labels.modeAllowAllDescription },
                   ]}
                 />
               </SettingsCard>
@@ -450,18 +454,17 @@ export default function WorkspaceSettingsPage() {
 
             {/* Mode Cycling */}
             <SettingsSection
-              title="Mode Cycling"
-              description="Select which modes to cycle through with Shift+Tab"
+              title={labels.modeCyclingTitle}
+              description={labels.modeCyclingDescription}
             >
               <SettingsCard>
                 {(['safe', 'ask', 'allow-all'] as const).map((m) => {
-                  const config = PERMISSION_MODE_CONFIG[m]
                   const isEnabled = enabledModes.includes(m)
                   return (
                     <SettingsToggle
                       key={m}
-                      label={config.displayName}
-                      description={config.description}
+                      label={m === 'safe' ? labels.modeSafeLabel : m === 'ask' ? labels.modeAskLabel : labels.modeAllowAllLabel}
+                      description={m === 'safe' ? labels.modeSafeDescription : m === 'ask' ? labels.modeAskDescription : labels.modeAllowAllDescription}
                       checked={isEnabled}
                       onCheckedChange={(checked) => handleModeToggle(m, checked)}
                     />
@@ -477,18 +480,18 @@ export default function WorkspaceSettingsPage() {
                     transition={{ duration: 0.2, ease: [0.4, 0, 0.2, 1] }}
                     className="text-xs text-destructive mt-1 overflow-hidden"
                   >
-                    {modeCyclingError}
+                    {labels.modeCyclingError}
                   </motion.p>
                 )}
               </AnimatePresence>
             </SettingsSection>
 
             {/* Advanced */}
-            <SettingsSection title="Advanced">
+            <SettingsSection title={labels.advancedTitle}>
               <SettingsCard>
                 <SettingsRow
-                  label="Default Working Directory"
-                  description={workingDirectory || 'Not set (uses session folder)'}
+                  label={labels.workingDirectoryLabel}
+                  description={workingDirectory || labels.workingDirectoryNotSet}
                   action={
                     <div className="flex items-center gap-2">
                       {workingDirectory && (
@@ -497,7 +500,7 @@ export default function WorkspaceSettingsPage() {
                           onClick={handleClearWorkingDirectory}
                           className="inline-flex items-center h-8 px-3 text-sm rounded-lg bg-background shadow-minimal hover:bg-foreground/[0.02] transition-colors text-foreground/60 hover:text-foreground"
                         >
-                          Clear
+                          {labels.workingDirectoryClear}
                         </button>
                       )}
                       <button
@@ -505,14 +508,14 @@ export default function WorkspaceSettingsPage() {
                         onClick={handleChangeWorkingDirectory}
                         className="inline-flex items-center h-8 px-3 text-sm rounded-lg bg-background shadow-minimal hover:bg-foreground/[0.02] transition-colors"
                       >
-                        Change...
+                        {labels.workingDirectoryChange}
                       </button>
                     </div>
                   }
                 />
                 <SettingsToggle
-                  label="Local MCP Servers"
-                  description="Enable stdio subprocess servers"
+                  label={labels.localMcpLabel}
+                  description={labels.localMcpDescription}
                   checked={localMcpEnabled}
                   onCheckedChange={handleLocalMcpEnabledChange}
                 />

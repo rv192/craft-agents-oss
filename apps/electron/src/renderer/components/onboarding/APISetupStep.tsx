@@ -1,6 +1,9 @@
 import { cn } from "@/lib/utils"
 import { Check, CreditCard, Key } from "lucide-react"
 import { StepFormLayout, BackButton, ContinueButton } from "./primitives"
+import type { TFunction } from "i18next"
+import { useTranslation } from "react-i18next"
+import { getApiSetupLabels } from './labels'
 
 export type ApiSetupMethod = 'api_key' | 'claude_oauth'
 
@@ -12,21 +15,23 @@ interface ApiSetupOption {
   recommended?: boolean
 }
 
-const API_SETUP_OPTIONS: ApiSetupOption[] = [
-  {
-    id: 'claude_oauth',
-    name: 'Claude Pro/Max',
-    description: 'Use your Claude subscription for unlimited access.',
-    icon: <CreditCard className="size-4" />,
-    recommended: true,
-  },
-  {
-    id: 'api_key',
-    name: 'API Key',
-    description: 'Anthropic, OpenRouter, Ollama, or compatible APIs.',
-    icon: <Key className="size-4" />,
-  },
-]
+function getApiSetupOptions(t: TFunction): ApiSetupOption[] {
+  return [
+    {
+      id: 'claude_oauth',
+      name: t('onboarding:apiSetup.options.claude.name'),
+      description: t('onboarding:apiSetup.options.claude.description'),
+      icon: <CreditCard className="size-4" />,
+      recommended: true,
+    },
+    {
+      id: 'api_key',
+      name: t('onboarding:apiSetup.options.apiKey.name'),
+      description: t('onboarding:apiSetup.options.apiKey.description'),
+      icon: <Key className="size-4" />,
+    },
+  ]
+}
 
 interface APISetupStepProps {
   selectedMethod: ApiSetupMethod | null
@@ -48,25 +53,29 @@ export function APISetupStep({
   onContinue,
   onBack
 }: APISetupStepProps) {
+  const { t } = useTranslation(['onboarding'])
+  const options = getApiSetupOptions(t)
+  const labels = getApiSetupLabels(t)
   return (
     <StepFormLayout
-      title="Set Up API Connection"
-      description="Select how you'd like to power your AI agents."
+      title={labels.title}
+      description={labels.description}
       actions={
         <>
-          <BackButton onClick={onBack} />
-          <ContinueButton onClick={onContinue} disabled={!selectedMethod} />
+          <BackButton onClick={onBack}>{labels.back}</BackButton>
+          <ContinueButton onClick={onContinue} disabled={!selectedMethod}>{labels.continue}</ContinueButton>
         </>
       }
     >
       {/* Options */}
       <div className="space-y-3">
-        {API_SETUP_OPTIONS.map((option) => {
+        {options.map((option) => {
           const isSelected = option.id === selectedMethod
 
           return (
             <button
               key={option.id}
+              type="button"
               onClick={() => onSelect(option.id)}
               className={cn(
                 "flex w-full items-start gap-4 rounded-xl p-4 text-left transition-all",
@@ -93,7 +102,7 @@ export function APISetupStep({
                   <span className="font-medium text-sm">{option.name}</span>
                   {option.recommended && (
                     <span className="rounded-[4px] bg-background shadow-minimal px-2 py-0.5 text-[11px] font-medium text-foreground/70">
-                      Recommended
+                      {labels.recommended}
                     </span>
                   )}
                 </div>
