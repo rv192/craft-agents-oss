@@ -49,4 +49,42 @@ describe('settings page i18n labels', () => {
     expect(labels.editFile).toBe('Edit File Localized')
     expect(labels.learnMore).toBe('Learn More Localized')
   })
+
+  it('returns localized table headers for permissions and label hierarchy', () => {
+    const t: TFunction = ((key: string) => ({
+      'common:tables.permissions.accessHeader': 'Access Localized',
+      'common:tables.permissions.typeHeader': 'Type Localized',
+      'common:tables.permissions.patternHeader': 'Pattern Localized',
+      'common:tables.permissions.commentHeader': 'Comment Localized',
+      'common:tables.labels.colorHeader': 'Color Localized',
+      'common:tables.labels.nameHeader': 'Name Localized',
+      'common:tables.labels.typeHeader': 'Type Localized',
+    } as Record<string, string>)[key] || key) as TFunction
+
+    const tableLabels = {
+      permissions: {
+        headers: {
+          access: t('common:tables.permissions.accessHeader'),
+          type: t('common:tables.permissions.typeHeader'),
+          pattern: t('common:tables.permissions.patternHeader'),
+          comment: t('common:tables.permissions.commentHeader'),
+        },
+      },
+      labels: {
+        headers: {
+          color: t('common:tables.labels.colorHeader'),
+          name: t('common:tables.labels.nameHeader'),
+          type: t('common:tables.labels.typeHeader'),
+        },
+      },
+    }
+
+    expect(tableLabels.permissions.headers.access).toBe('Access Localized')
+    expect(tableLabels.permissions.headers.type).toBe('Type Localized')
+    expect(tableLabels.permissions.headers.pattern).toBe('Pattern Localized')
+    expect(tableLabels.permissions.headers.comment).toBe('Comment Localized')
+    expect(tableLabels.labels.headers.color).toBe('Color Localized')
+    expect(tableLabels.labels.headers.name).toBe('Name Localized')
+    expect(tableLabels.labels.headers.type).toBe('Type Localized')
+  })
 })
