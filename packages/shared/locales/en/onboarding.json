@@ -11,6 +11,8 @@
   "apiSetup": {
     "title": "Set Up API Connection",
     "description": "Select how you'd like to power your AI agents.",
+    "back": "Back",
+    "continue": "Continue",
     "recommended": "Recommended",
     "options": {
       "claude": {
@@ -28,19 +30,49 @@
       "title": "Enter Authorization Code",
       "description": "Copy the code from the browser page and paste it below.",
       "cancel": "Cancel",
+      "back": "Back",
       "continue": "Continue",
-      "loading": "Connecting..."
+      "loading": "Connecting...",
+      "errors": {
+        "emptyCode": "Please enter the authorization code"
+      }
     },
     "oauthConnect": {
       "title": "Connect Claude Account",
       "description": "Use your Claude subscription to power multi-agent workflows.",
       "button": "Sign in with Claude",
-      "loading": "Connecting..."
+      "loading": "Connecting...",
+      "errors": {
+        "startFailed": "Failed to start OAuth",
+        "failed": "OAuth failed"
+      }
     },
     "apiKey": {
       "title": "API Configuration",
       "description": "Enter your API key. Optionally configure a custom endpoint for OpenRouter, Ollama, or compatible APIs.",
-      "loading": "Validating..."
+      "loading": "Validating...",
+      "modelLabel": "Model",
+      "optional": "optional",
+      "presets": {
+        "custom": "Custom"
+      },
+      "errors": {
+        "invalid": "Please enter a valid API key",
+        "connectionTestFailed": "Connection test failed",
+        "validationFailed": "Validation failed"
+      },
+      "modelHelp": {
+        "custom": "Defaults to Anthropic model names (Opus, Sonnet, Haiku) when empty",
+        "nonClaude": "Leave empty for Claude models. Only set for non-Claude models.",
+        "formatPrefix": "Format:",
+        "browseModels": "Browse models",
+        "viewSupportedModels": "View supported models",
+        "ollama": "Use any model pulled via ollama pull. No API key required."
+      }
+    },
+    "actions": {
+      "back": "Back",
+      "continue": "Continue"
     }
   },
   "completion": {

@@ -11,6 +11,8 @@
   "apiSetup": {
     "title": "设置 API 连接",
     "description": "选择你希望为智能体提供动力的方式。",
+    "back": "返回",
+    "continue": "继续",
     "recommended": "推荐",
     "options": {
       "claude": {
@@ -28,19 +30,49 @@
       "title": "输入授权码",
       "description": "从浏览器页面复制授权码并粘贴到下方。",
       "cancel": "取消",
+      "back": "返回",
       "continue": "继续",
-      "loading": "正在连接..."
+      "loading": "正在连接...",
+      "errors": {
+        "emptyCode": "请输入授权码"
+      }
     },
     "oauthConnect": {
       "title": "连接 Claude 账号",
       "description": "使用你的 Claude 订阅来驱动多智能体工作流。",
       "button": "使用 Claude 登录",
-      "loading": "正在连接..."
+      "loading": "正在连接...",
+      "errors": {
+        "startFailed": "启动 OAuth 失败",
+        "failed": "OAuth 失败"
+      }
     },
     "apiKey": {
       "title": "API 配置",
       "description": "输入你的 API 密钥。可选配置 OpenRouter、Ollama 或兼容 API 的自定义端点。",
-      "loading": "正在验证..."
+      "loading": "正在验证...",
+      "modelLabel": "模型",
+      "optional": "可选",
+      "presets": {
+        "custom": "自定义"
+      },
+      "errors": {
+        "invalid": "请输入有效的 API Key",
+        "connectionTestFailed": "连接测试失败",
+        "validationFailed": "校验失败"
+      },
+      "modelHelp": {
+        "custom": "留空时默认使用 Anthropic 模型名（Opus、Sonnet、Haiku）",
+        "nonClaude": "Claude 模型请留空，仅在非 Claude 模型时填写。",
+        "formatPrefix": "格式：",
+        "browseModels": "浏览模型",
+        "viewSupportedModels": "查看支持模型",
+        "ollama": "使用通过 ollama pull 拉取的任意模型。无需 API Key。"
+      }
+    },
+    "actions": {
+      "back": "返回",
+      "continue": "继续"
     }
   },
   "completion": {
