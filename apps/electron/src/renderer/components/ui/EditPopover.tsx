@@ -21,6 +21,7 @@ import { useActiveWorkspace, useAppShellContext, useSession } from '@/context/Ap
 import { useEscapeInterrupt } from '@/context/EscapeInterruptContext'
 import { ChatDisplay } from '../app-shell/ChatDisplay'
 import { buildEditPopoverPlaceholder } from './edit-popover-placeholder'
+import { resolveEditButtonLabel } from './edit-button-label'
 
 /** Rotating placeholders for compact mode input - short, action-oriented */
 const COMPACT_PLACEHOLDERS = [
@@ -1044,6 +1045,7 @@ export const EditButton = React.forwardRef<
   HTMLButtonElement,
   React.ComponentPropsWithoutRef<typeof Button>
 >(function EditButton({ className, ...props }, ref) {
+  const { t } = useTranslation(['common'])
   return (
     <Button
       ref={ref}
@@ -1053,7 +1055,7 @@ export const EditButton = React.forwardRef<
       className={cn("h-8 px-3 rounded-[6px] bg-background shadow-minimal text-foreground/70 hover:text-foreground", className)}
       {...props}
     >
-      Edit
+      {resolveEditButtonLabel(t)}
     </Button>
   )
 })
