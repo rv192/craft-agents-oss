@@ -66,7 +66,7 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           set -euo pipefail
-          if gh release view "${{ steps.release.outputs.tag }}" --json tagName >/dev/null 2>&1; then
+          if gh release view "${{ steps.release.outputs.tag }}" --repo "${{ github.repository }}" --json tagName >/dev/null 2>&1; then
             echo "exists=true" >> "$GITHUB_OUTPUT"
           else
             echo "exists=false" >> "$GITHUB_OUTPUT"
@@ -84,6 +84,13 @@ jobs:
           git remote add upstream "https://github.com/${UPSTREAM_REPO}.git"
           git fetch --tags upstream
           git fetch origin
+
+      - name: Configure git identity for merge commit
+        if: steps.exists.outputs.exists == 'false'
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
       - name: Create integration branch and merge i18n
         if: steps.exists.outputs.exists == 'false'
@@ -113,9 +120,9 @@ jobs:
         run: |
           set -euo pipefail
           gh issue create \
+            --repo "${{ github.repository }}" \
             --title "[release-sync] merge conflict on ${{ steps.release.outputs.tag }}" \
-            --body "Automatic merge failed for tag ${{ steps.release.outputs.tag }}.\n\nConflicted files:\n${{ steps.integrate.outputs.conflict_files }}\n\nPlease resolve manually." \
-            --label release-sync || true
+            --body "Automatic merge failed for tag ${{ steps.release.outputs.tag }}.\n\nConflicted files:\n${{ steps.integrate.outputs.conflict_files }}\n\nPlease resolve manually." || true
 
       - name: Push release branch
         if: steps.exists.outputs.exists == 'false' && steps.integrate.outputs.conflict == 'false'
@@ -132,12 +139,27 @@ jobs:
           TITLE="[release-sync] ${{ steps.release.outputs.tag }} bilingual release"
           BODY="This PR integrates upstream tag ${{ steps.release.outputs.tag }} with i18n branch ${I18N_BRANCH}.\n\n- Upstream release: ${{ steps.release.outputs.url }}\n- Target branch: ${TARGET_BRANCH}\n"
 
-          if [ -n "$(gh pr list --head "${{ steps.integrate.outputs.release_branch }}" --base "$TARGET_BRANCH" --json number -q '.[0].number')" ]; then
+          if [ -n "$(gh pr list --repo "${{ github.repository }}" --head "${{ steps.integrate.outputs.release_branch }}" --base "$TARGET_BRANCH" --json number -q '.[0].number')" ]; then
             echo "PR already exists for ${{ steps.integrate.outputs.release_branch }}"
           else
             gh pr create \
+              --repo "${{ github.repository }}" \
               --base "$TARGET_BRANCH" \
               --head "${{ steps.integrate.outputs.release_branch }}" \
               --title "$TITLE" \
               --body "$BODY"
           fi
+
+      - name: Trigger bilingual release workflow
+        if: steps.exists.outputs.exists == 'false' && steps.integrate.outputs.conflict == 'false'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          gh workflow run "Build and Publish Bilingual Release" \
+            --repo "${{ github.repository }}" \
+            --ref "$TARGET_BRANCH" \
+            -f release_branch="${{ steps.integrate.outputs.release_branch }}" \
+            -f tag="${{ steps.release.outputs.tag }}" \
+            -f upstream_repo="$UPSTREAM_REPO" \
+            -f publish=true
