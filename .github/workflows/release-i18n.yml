@@ -53,8 +53,17 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           set -euo pipefail
-          gh release view "${{ inputs.tag }}" --repo "${{ inputs.upstream_repo }}" --json body,url -q '.body' > english-notes.md
-          URL="$(gh release view "${{ inputs.tag }}" --repo "${{ inputs.upstream_repo }}" --json url -q '.url')"
+          SOURCE_TAG="${{ inputs.tag }}"
+          if ! gh release view "$SOURCE_TAG" --repo "${{ inputs.upstream_repo }}" >/dev/null 2>&1; then
+            if [[ "$SOURCE_TAG" =~ ^v([0-9]+\.[0-9]+\.[0-9]+)\.[0-9]+$ ]]; then
+              SOURCE_TAG="v${BASH_REMATCH[1]}"
+            fi
+          fi
+
+          gh release view "$SOURCE_TAG" --repo "${{ inputs.upstream_repo }}" --json body,url -q '.body' > english-notes.md
+          URL="$(gh release view "$SOURCE_TAG" --repo "${{ inputs.upstream_repo }}" --json url -q '.url')"
+
+          echo "Using upstream release notes from $SOURCE_TAG"
           echo "url=$URL" >> "$GITHUB_OUTPUT"
 
       - name: Translate English notes to Chinese
