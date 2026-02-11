@@ -4,8 +4,8 @@ on:
   workflow_dispatch:
     inputs:
       release_branch:
-        description: 'Release integration branch (e.g. release/v0.3.5-zh)'
-        required: true
+        description: 'Release integration branch (defaults to release/<tag>-zh when empty)'
+        required: false
         type: string
       tag:
         description: 'Release tag (e.g. v0.3.5)'
@@ -30,8 +30,34 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  resolve-inputs:
+    runs-on: ubuntu-latest
+    outputs:
+      release_branch: ${{ steps.resolve.outputs.release_branch }}
+    steps:
+      - name: Resolve and validate release branch
+        id: resolve
+        run: |
+          set -euo pipefail
+          INPUT_RELEASE_BRANCH='${{ inputs.release_branch }}'
+          TAG='${{ inputs.tag }}'
+
+          if [ -n "$INPUT_RELEASE_BRANCH" ]; then
+            RELEASE_BRANCH="$INPUT_RELEASE_BRANCH"
+          else
+            RELEASE_BRANCH="release/${TAG}-zh"
+          fi
+
+          if [ "$RELEASE_BRANCH" = "main" ] || [ "$RELEASE_BRANCH" = "master" ]; then
+            echo "release_branch cannot be main/master; use integration branch like release/${TAG}-zh" >&2
+            exit 1
+          fi
+
+          echo "release_branch=$RELEASE_BRANCH" >> "$GITHUB_OUTPUT"
+
   prepare-notes:
     runs-on: ubuntu-latest
+    needs: resolve-inputs
     outputs:
       release_body_path: ${{ steps.paths.outputs.release_body_path }}
       upstream_release_url: ${{ steps.upstream.outputs.url }}
@@ -39,7 +65,7 @@ jobs:
       - name: Checkout release branch
         uses: actions/checkout@v4
         with:
-          ref: ${{ inputs.release_branch }}
+          ref: ${{ needs.resolve-inputs.outputs.release_branch }}
 
       - name: Setup Bun
         uses: oven-sh/setup-bun@v2
@@ -110,12 +136,12 @@ jobs:
               apps/electron/release/*.blockmap
               apps/electron/release/*.yml
     runs-on: ${{ matrix.target.os }}
-    needs: prepare-notes
+    needs: [resolve-inputs, prepare-notes]
     steps:
       - name: Checkout release branch
         uses: actions/checkout@v4
         with:
-          ref: ${{ inputs.release_branch }}
+          ref: ${{ needs.resolve-inputs.outputs.release_branch }}
 
       - name: Setup Bun
         uses: oven-sh/setup-bun@v2
