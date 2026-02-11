@@ -11,23 +11,47 @@
  * Run: bun scripts/copy-assets.ts
  */
 
-import { cpSync, copyFileSync, mkdirSync } from 'fs';
+import { cpSync, copyFileSync } from 'fs';
 import { join } from 'path';
 
-// Copy all resources (icons, themes, docs, permissions, tool-icons, etc.)
-cpSync('resources', 'dist/resources', { recursive: true });
+const ELECTRON_DIR = join(import.meta.dir, '..')
+const REPO_ROOT = join(ELECTRON_DIR, '..', '..')
 
-console.log('✓ Copied resources/ → dist/resources/');
+export function getAssetCopyPairs(repoRoot: string): Array<{ source: string; destination: string }> {
+  return [
+    {
+      source: join(repoRoot, 'apps', 'electron', 'resources'),
+      destination: join(repoRoot, 'apps', 'electron', 'dist', 'resources'),
+    },
+    {
+      source: join(repoRoot, 'packages', 'shared', 'locales'),
+      destination: join(repoRoot, 'apps', 'electron', 'dist', 'resources', 'locales'),
+    },
+  ]
+}
 
-// Copy PowerShell parser script (for Windows command validation in Explore mode)
-// Source: packages/shared/src/agent/powershell-parser.ps1
-// Destination: dist/resources/powershell-parser.ps1
-const psParserSrc = join('..', '..', 'packages', 'shared', 'src', 'agent', 'powershell-parser.ps1');
-const psParserDest = join('dist', 'resources', 'powershell-parser.ps1');
-try {
-  copyFileSync(psParserSrc, psParserDest);
-  console.log('✓ Copied powershell-parser.ps1 → dist/resources/');
-} catch (err) {
-  // Only warn - PowerShell validation is optional on non-Windows platforms
-  console.log('⚠ powershell-parser.ps1 copy skipped (not critical on non-Windows)');
+export function copyAssets(repoRoot: string): void {
+  for (const pair of getAssetCopyPairs(repoRoot)) {
+    cpSync(pair.source, pair.destination, { recursive: true, force: true })
+  }
+
+  console.log('✓ Copied resources/ → dist/resources/')
+  console.log('✓ Copied shared locales/ → dist/resources/locales/')
+
+  // Copy PowerShell parser script (for Windows command validation in Explore mode)
+  // Source: packages/shared/src/agent/powershell-parser.ps1
+  // Destination: dist/resources/powershell-parser.ps1
+  const psParserSrc = join(repoRoot, 'packages', 'shared', 'src', 'agent', 'powershell-parser.ps1')
+  const psParserDest = join(repoRoot, 'apps', 'electron', 'dist', 'resources', 'powershell-parser.ps1')
+  try {
+    copyFileSync(psParserSrc, psParserDest)
+    console.log('✓ Copied powershell-parser.ps1 → dist/resources/')
+  } catch {
+    // Only warn - PowerShell validation is optional on non-Windows platforms
+    console.log('⚠ powershell-parser.ps1 copy skipped (not critical on non-Windows)')
+  }
+}
+
+if (import.meta.main) {
+  copyAssets(REPO_ROOT)
 }
