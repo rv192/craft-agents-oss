@@ -89,7 +89,27 @@ jobs:
           echo "release_body_path=release-body.md" >> "$GITHUB_OUTPUT"
 
   build:
-    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        target:
+          - name: mac-arm64
+            os: macos-latest
+            package_cmd: npx electron-builder --config electron-builder.yml --project apps/electron --mac dmg --arm64
+            artifact_name: release-assets-mac-arm64
+            artifact_path: |
+              apps/electron/release/*.dmg
+              apps/electron/release/*.zip
+              apps/electron/release/*.yml
+          - name: win-x64
+            os: windows-latest
+            package_cmd: npx electron-builder --config electron-builder.yml --project apps/electron --win nsis --x64
+            artifact_name: release-assets-win-x64
+            artifact_path: |
+              apps/electron/release/*.exe
+              apps/electron/release/*.blockmap
+              apps/electron/release/*.yml
+    runs-on: ${{ matrix.target.os }}
     needs: prepare-notes
     steps:
       - name: Checkout release branch
@@ -106,18 +126,16 @@ jobs:
       - name: Build Electron app
         run: bun run electron:build
 
-      - name: Package Linux artifact
+      - name: Package platform artifact
         run: |
           set -euo pipefail
-          npx electron-builder --config electron-builder.yml --project apps/electron --linux --x64
+          ${{ matrix.target.package_cmd }}
 
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: release-assets
-          path: |
-            apps/electron/release/*.AppImage
-            apps/electron/release/*.yml
+          name: ${{ matrix.target.artifact_name }}
+          path: ${{ matrix.target.artifact_path }}
 
   release:
     runs-on: ubuntu-latest
@@ -131,7 +149,8 @@ jobs:
       - name: Download build artifacts
         uses: actions/download-artifact@v4
         with:
-          name: release-assets
+          pattern: release-assets-*
+          merge-multiple: true
           path: release-assets
 
       - name: Create or update draft release
