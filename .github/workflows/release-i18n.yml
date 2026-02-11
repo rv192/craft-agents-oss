@@ -124,6 +124,8 @@ jobs:
         run: bun install
 
       - name: Build Electron app
+        env:
+          NODE_OPTIONS: --max-old-space-size=6144
         run: bun run electron:build
 
       - name: Package platform artifact
