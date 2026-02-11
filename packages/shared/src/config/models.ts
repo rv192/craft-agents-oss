@@ -186,6 +186,8 @@ export function getDefaultSummarizationModel(): string {
   return findModelIdByShortName('Haiku') ?? DEFAULT_MODEL;
 }
 
+export const SUMMARIZATION_MODEL = getDefaultSummarizationModel();
+
 // ============================================
 // HELPER FUNCTIONS
 // ============================================
@@ -279,4 +281,3 @@ export function isCopilotModel(modelId: string): boolean {
 export function getModelProvider(modelId: string): ModelProvider | undefined {
   return getModelById(modelId)?.provider;
 }
-
