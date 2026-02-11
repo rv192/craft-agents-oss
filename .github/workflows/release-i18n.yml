@@ -127,9 +127,7 @@ jobs:
         run: bun run electron:build
 
       - name: Package platform artifact
-        run: |
-          set -euo pipefail
-          ${{ matrix.target.package_cmd }}
+        run: ${{ matrix.target.package_cmd }}
 
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
