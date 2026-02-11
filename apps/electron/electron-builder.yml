@@ -66,8 +66,8 @@ mac:
         - x64
   hardenedRuntime: true
   gatekeeperAssess: false
-  entitlements: build/entitlements.mac.plist
-  entitlementsInherit: build/entitlements.mac.plist
+  entitlements: apps/electron/build/entitlements.mac.plist
+  entitlementsInherit: apps/electron/build/entitlements.mac.plist
   extraResources:
     - from: node_modules/@anthropic-ai/claude-agent-sdk
       to: app/node_modules/@anthropic-ai/claude-agent-sdk
