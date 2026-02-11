@@ -55,7 +55,7 @@ export function MainContentPanel({
     onArchiveSession,
     onSessionLabelsChange,
     todoStates,
-    labels,
+    labels: sessionLabels,
   } = useAppShellContext()
 
   // Multi-select state
@@ -198,7 +198,7 @@ export function MainContentPanel({
             todoStates={todoStates}
             activeStatusId={activeStatusId}
             onSetStatus={handleBatchSetStatus}
-            labels={labels}
+            labels={sessionLabels}
             appliedLabelIds={appliedLabelIds}
             onToggleLabel={handleBatchToggleLabel}
             onArchive={handleBatchArchive}

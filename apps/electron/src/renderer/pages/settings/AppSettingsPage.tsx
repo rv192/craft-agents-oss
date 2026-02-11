@@ -270,17 +270,17 @@ export default function AppSettingsPage() {
                   </Button>
                 </SettingsRow>
                 {updateChecker.isReadyToInstall && updateChecker.updateInfo?.latestVersion && (
-                  <SettingsRow label={labels.updateReadyLabel}>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={handleCheckForUpdates}
-                      disabled={isCheckingForUpdates}
-                    >
-                      {labels.restartToUpdateLabel.replace('{{version}}', updateChecker.updateInfo.latestVersion)}
-                    </Button>
-                  </SettingsRow>
-                  {updateChecker.isReadyToInstall && (
+                  <>
+                    <SettingsRow label={labels.updateReadyLabel}>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={handleCheckForUpdates}
+                        disabled={isCheckingForUpdates}
+                      >
+                        {labels.restartToUpdateLabel.replace('{{version}}', updateChecker.updateInfo.latestVersion)}
+                      </Button>
+                    </SettingsRow>
                     <SettingsRow label="Install update">
                       <Button
                         size="sm"
@@ -289,8 +289,9 @@ export default function AppSettingsPage() {
                         Restart to Update
                       </Button>
                     </SettingsRow>
-                  )}
-                </SettingsCard>
+                  </>
+                )}
+              </SettingsCard>
               </SettingsSection>
             </div>
           </div>

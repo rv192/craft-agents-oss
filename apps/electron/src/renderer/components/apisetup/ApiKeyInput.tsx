@@ -304,8 +304,8 @@ export function ApiKeyInput({
               disabled={isDisabled}
             />
           </div>
-        )}
-      </div>
+        </div>
+      )}
 
       {/* Default Model (optional) — hidden for default provider presets since they use their own model routing */}
       {!isDefaultProviderPreset && (
