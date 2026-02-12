@@ -4,8 +4,8 @@ on:
   workflow_dispatch:
     inputs:
       release_branch:
-        description: 'Release integration branch (defaults to release/<tag>-zh when empty)'
-        required: false
+        description: 'Release integration branch (e.g. release/v0.3.5-zh)'
+        required: true
         type: string
       tag:
         description: 'Release tag (e.g. v0.3.5)'
@@ -30,34 +30,8 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  resolve-inputs:
-    runs-on: ubuntu-latest
-    outputs:
-      release_branch: ${{ steps.resolve.outputs.release_branch }}
-    steps:
-      - name: Resolve and validate release branch
-        id: resolve
-        run: |
-          set -euo pipefail
-          INPUT_RELEASE_BRANCH='${{ inputs.release_branch }}'
-          TAG='${{ inputs.tag }}'
-
-          if [ -n "$INPUT_RELEASE_BRANCH" ]; then
-            RELEASE_BRANCH="$INPUT_RELEASE_BRANCH"
-          else
-            RELEASE_BRANCH="release/${TAG}-zh"
-          fi
-
-          if [ "$RELEASE_BRANCH" = "main" ] || [ "$RELEASE_BRANCH" = "master" ]; then
-            echo "release_branch cannot be main/master; use integration branch like release/${TAG}-zh" >&2
-            exit 1
-          fi
-
-          echo "release_branch=$RELEASE_BRANCH" >> "$GITHUB_OUTPUT"
-
   prepare-notes:
     runs-on: ubuntu-latest
-    needs: resolve-inputs
     outputs:
       release_body_path: ${{ steps.paths.outputs.release_body_path }}
       upstream_release_url: ${{ steps.upstream.outputs.url }}
@@ -65,7 +39,7 @@ jobs:
       - name: Checkout release branch
         uses: actions/checkout@v4
         with:
-          ref: ${{ needs.resolve-inputs.outputs.release_branch }}
+          ref: ${{ inputs.release_branch }}
 
       - name: Setup Bun
         uses: oven-sh/setup-bun@v2
@@ -79,8 +53,17 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           set -euo pipefail
-          gh release view "${{ inputs.tag }}" --repo "${{ inputs.upstream_repo }}" --json body,url -q '.body' > english-notes.md
-          URL="$(gh release view "${{ inputs.tag }}" --repo "${{ inputs.upstream_repo }}" --json url -q '.url')"
+          SOURCE_TAG="${{ inputs.tag }}"
+          if ! gh release view "$SOURCE_TAG" --repo "${{ inputs.upstream_repo }}" >/dev/null 2>&1; then
+            if [[ "$SOURCE_TAG" =~ ^v([0-9]+\.[0-9]+\.[0-9]+)\.[0-9]+$ ]]; then
+              SOURCE_TAG="v${BASH_REMATCH[1]}"
+            fi
+          fi
+
+          gh release view "$SOURCE_TAG" --repo "${{ inputs.upstream_repo }}" --json body,url -q '.body' > english-notes.md
+          URL="$(gh release view "$SOURCE_TAG" --repo "${{ inputs.upstream_repo }}" --json url -q '.url')"
+
+          echo "Using upstream release notes from $SOURCE_TAG"
           echo "url=$URL" >> "$GITHUB_OUTPUT"
 
       - name: Translate English notes to Chinese
@@ -136,12 +119,12 @@ jobs:
               apps/electron/release/*.blockmap
               apps/electron/release/*.yml
     runs-on: ${{ matrix.target.os }}
-    needs: [resolve-inputs, prepare-notes]
+    needs: prepare-notes
     steps:
       - name: Checkout release branch
         uses: actions/checkout@v4
         with:
-          ref: ${{ needs.resolve-inputs.outputs.release_branch }}
+          ref: ${{ inputs.release_branch }}
 
       - name: Setup Bun
         uses: oven-sh/setup-bun@v2
@@ -149,7 +132,22 @@ jobs:
       - name: Install dependencies
         run: bun install
 
+      - name: Prepare packaged runtime dependencies
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p apps/electron/node_modules/@anthropic-ai
+          cp -R node_modules/@anthropic-ai/claude-agent-sdk apps/electron/node_modules/@anthropic-ai/
+
+          mkdir -p apps/electron/packages/shared/src
+          cp packages/shared/src/network-interceptor.ts apps/electron/packages/shared/src/
+
+          test -f apps/electron/node_modules/@anthropic-ai/claude-agent-sdk/cli.js
+          test -f apps/electron/packages/shared/src/network-interceptor.ts
+
       - name: Build Electron app
+        env:
+          NODE_OPTIONS: --max-old-space-size=6144
         run: bun run electron:build
 
       - name: Package platform artifact

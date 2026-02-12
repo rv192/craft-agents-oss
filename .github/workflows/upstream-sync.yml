@@ -1,4 +1,4 @@
-name: Upstream Release Sync
+name: Upstream Release Sync (Improved)
 
 on:
   schedule:
@@ -14,6 +14,11 @@ on:
         required: false
         type: string
         default: feat/issue-31-i18n-zhcn
+      skip_verification:
+        description: 'Skip build and test verification (use with caution)'
+        required: false
+        type: boolean
+        default: false
 
 permissions:
   contents: write
@@ -48,17 +53,17 @@ jobs:
             TAG="$INPUT_TAG"
             URL="https://github.com/${UPSTREAM_REPO}/releases/tag/${TAG}"
           else
-            TAG="$(gh release view --repo "$UPSTREAM_REPO" --json tagName -q '.tagName')"
-            URL="$(gh release view --repo "$UPSTREAM_REPO" --json url -q '.url')"
+            TAG="\$(gh release view --repo "\$UPSTREAM_REPO" --json tagName -q '.tagName')"
+            URL="\$(gh release view --repo "\$UPSTREAM_REPO" --json url -q '.url')"
           fi
 
-          if [ -z "$TAG" ]; then
+          if [ -z "\$TAG" ]; then
             echo "Failed to resolve upstream tag" >&2
             exit 1
           fi
 
-          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
-          echo "url=$URL" >> "$GITHUB_OUTPUT"
+          echo "tag=\$TAG" >> "\$GITHUB_OUTPUT"
+          echo "url=\$URL" >> "\$GITHUB_OUTPUT"
 
       - name: Check existing release in fork
         id: exists
@@ -66,22 +71,22 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           set -euo pipefail
-          if gh release view "${{ steps.release.outputs.tag }}" --repo "${{ github.repository }}" --json tagName >/dev/null 2>&1; then
-            echo "exists=true" >> "$GITHUB_OUTPUT"
+          if gh release view "\${{ steps.release.outputs.tag }}" --repo "\${{ github.repository }}" --json tagName >/dev/null 2>&1; then
+            echo "exists=true" >> "\$GITHUB_OUTPUT"
           else
-            echo "exists=false" >> "$GITHUB_OUTPUT"
+            echo "exists=false" >> "\$GITHUB_OUTPUT"
           fi
 
       - name: Stop if release already exists
         if: steps.exists.outputs.exists == 'true'
         run: |
-          echo "Release ${{ steps.release.outputs.tag }} already exists in fork. Skip."
+          echo "Release \${{ steps.release.outputs.tag }} already exists in fork. Skip."
 
       - name: Configure git remotes
         if: steps.exists.outputs.exists == 'false'
         run: |
           set -euo pipefail
-          git remote add upstream "https://github.com/${UPSTREAM_REPO}.git"
+          git remote add upstream "https://github.com/\${UPSTREAM_REPO}.git"
           git fetch --tags upstream
           git fetch origin
 
@@ -97,21 +102,21 @@ jobs:
         id: integrate
         run: |
           set -euo pipefail
-          TAG="${{ steps.release.outputs.tag }}"
-          RELEASE_BRANCH="release/${TAG}-zh"
+          TAG="\${{ steps.release.outputs.tag }}"
+          RELEASE_BRANCH="release/\${TAG}-zh"
 
-          git checkout -B "$RELEASE_BRANCH" "$TAG"
+          git checkout -B "\$RELEASE_BRANCH" "\$TAG"
 
-          if ! git merge --no-ff "origin/${I18N_BRANCH}" -m "Merge i18n overlay ${I18N_BRANCH} into ${RELEASE_BRANCH}"; then
-            echo "conflict=true" >> "$GITHUB_OUTPUT"
-            CONFLICT_FILES="$(git diff --name-only --diff-filter=U | tr '\n' ',' | sed 's/,$//')"
-            echo "conflict_files=$CONFLICT_FILES" >> "$GITHUB_OUTPUT"
+          if ! git merge --no-ff "origin/\${I18N_BRANCH}" -m "Merge i18n overlay \${I18N_BRANCH} into \${RELEASE_BRANCH}"; then
+            echo "conflict=true" >> "\$GITHUB_OUTPUT"
+            CONFLICT_FILES="\$(git diff --name-only --diff-filter=U | tr '\n' ',' | sed 's/,\$//')"
+            echo "conflict_files=\$CONFLICT_FILES" >> "\$GITHUB_OUTPUT"
             git merge --abort || true
             exit 0
           fi
 
-          echo "conflict=false" >> "$GITHUB_OUTPUT"
-          echo "release_branch=$RELEASE_BRANCH" >> "$GITHUB_OUTPUT"
+          echo "conflict=false" >> "\$GITHUB_OUTPUT"
+          echo "release_branch=\$RELEASE_BRANCH" >> "\$GITHUB_OUTPUT"
 
       - name: Open issue for merge conflicts
         if: steps.exists.outputs.exists == 'false' && steps.integrate.outputs.conflict == 'true'
@@ -120,15 +125,60 @@ jobs:
         run: |
           set -euo pipefail
           gh issue create \
-            --repo "${{ github.repository }}" \
-            --title "[release-sync] merge conflict on ${{ steps.release.outputs.tag }}" \
-            --body "Automatic merge failed for tag ${{ steps.release.outputs.tag }}.\n\nConflicted files:\n${{ steps.integrate.outputs.conflict_files }}\n\nPlease resolve manually." || true
+            --repo "\${{ github.repository }}" \
+            --title "[release-sync] merge conflict on \${{ steps.release.outputs.tag }}" \
+            --body "Automatic merge failed for tag \${{ steps.release.outputs.tag }}.\n\nConflicted files:\n\${{ steps.integrate.outputs.conflict_files }}\n\nPlease resolve manually." || true
+
+      - name: Install dependencies
+        if: steps.exists.outputs.exists == 'false' && steps.integrate.outputs.conflict == 'false'
+        run: |
+          set -euo pipefail
+          bun install
+
+      - name: Build Electron app (verification)
+        if: steps.exists.outputs.exists == 'false' && steps.integrate.outputs.conflict == 'false' && inputs.skip_verification == false
+        env:
+          NODE_OPTIONS: --max-old-space-size=6144
+        run: |
+          set -euo pipefail
+          echo "Running build verification..."
+          bun run electron:build
+
+      - name: Run tests (verification)
+        if: steps.exists.outputs.exists == 'false' && steps.integrate.outputs.conflict == 'false' && inputs.skip_verification == false
+        run: |
+          set -euo pipefail
+          echo "Running test verification..."
+          bun test
+
+      - name: Verify i18n loading
+        if: steps.exists.outputs.exists == 'false' && steps.integrate.outputs.conflict == 'false' && inputs.skip_verification == false
+        run: |
+          set -euo pipefail
+          echo "Running i18n verification..."
+          bun run scripts/verify-i18n.ts || echo "i18n verification script not found, skipping..."
+
+      - name: Apply post-merge fixes
+        if: steps.exists.outputs.exists == 'false' && steps.integrate.outputs.conflict == 'false'
+        run: |
+          set -euo pipefail
+          echo "Applying post-merge fixes..."
+          bun run scripts/apply-i18n-fixes.ts || echo "Fix script not found, skipping..."
+
+      - name: Final build verification
+        if: steps.exists.outputs.exists == 'false' && steps.integrate.outputs.conflict == 'false' && inputs.skip_verification == false
+        env:
+          NODE_OPTIONS: --max-old-space-size=6144
+        run: |
+          set -euo pipefail
+          echo "Running final build verification after fixes..."
+          bun run electron:build
 
       - name: Push release branch
         if: steps.exists.outputs.exists == 'false' && steps.integrate.outputs.conflict == 'false'
         run: |
           set -euo pipefail
-          git push -u origin "${{ steps.integrate.outputs.release_branch }}"
+          git push -u origin "\${{ steps.integrate.outputs.release_branch }}"
 
       - name: Open or update PR to main
         if: steps.exists.outputs.exists == 'false' && steps.integrate.outputs.conflict == 'false'
@@ -136,18 +186,18 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           set -euo pipefail
-          TITLE="[release-sync] ${{ steps.release.outputs.tag }} bilingual release"
-          BODY="This PR integrates upstream tag ${{ steps.release.outputs.tag }} with i18n branch ${I18N_BRANCH}.\n\n- Upstream release: ${{ steps.release.outputs.url }}\n- Target branch: ${TARGET_BRANCH}\n"
+          TITLE="[release-sync] \${{ steps.release.outputs.tag }} bilingual release"
+          BODY="This PR integrates upstream tag \${{ steps.release.outputs.tag }} with i18n branch \${I18N_BRANCH}.\n\n- Upstream release: \${{ steps.release.outputs.url }}\n- Target branch: \${TARGET_BRANCH}\n- Verification: \${{ inputs.skip_verification == 'true' && 'SKIPPED' || 'PASSED' }}"
 
-          if [ -n "$(gh pr list --repo "${{ github.repository }}" --head "${{ steps.integrate.outputs.release_branch }}" --base "$TARGET_BRANCH" --json number -q '.[0].number')" ]; then
-            echo "PR already exists for ${{ steps.integrate.outputs.release_branch }}"
+          if [ -n "\$(gh pr list --repo "\${{ github.repository }}" --head "\${{ steps.integrate.outputs.release_branch }}" --base "\$TARGET_BRANCH" --json number -q '.[0].number')" ]; then
+            echo "PR already exists for \${{ steps.integrate.outputs.release_branch }}"
           else
             gh pr create \
-              --repo "${{ github.repository }}" \
-              --base "$TARGET_BRANCH" \
-              --head "${{ steps.integrate.outputs.release_branch }}" \
-              --title "$TITLE" \
-              --body "$BODY"
+              --repo "\${{ github.repository }}" \
+              --base "\$TARGET_BRANCH" \
+              --head "\${{ steps.integrate.outputs.release_branch }}" \
+              --title "\$TITLE" \
+              --body "\$BODY"
           fi
 
       - name: Trigger bilingual release workflow
@@ -157,9 +207,9 @@ jobs:
         run: |
           set -euo pipefail
           gh workflow run "Build and Publish Bilingual Release" \
-            --repo "${{ github.repository }}" \
-            --ref "$TARGET_BRANCH" \
-            -f release_branch="${{ steps.integrate.outputs.release_branch }}" \
-            -f tag="${{ steps.release.outputs.tag }}" \
-            -f upstream_repo="$UPSTREAM_REPO" \
+            --repo "\${{ github.repository }}" \
+            --ref "\$TARGET_BRANCH" \
+            -f release_branch="\${{ steps.integrate.outputs.release_branch }}" \
+            -f tag="\${{ steps.release.outputs.tag }}" \
+            -f upstream_repo="\$UPSTREAM_REPO" \
             -f publish=true
