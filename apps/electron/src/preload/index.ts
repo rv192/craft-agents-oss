@@ -426,6 +426,11 @@ const api: ElectronAPI = {
   setNotificationsEnabled: (enabled: boolean) =>
     ipcRenderer.invoke(IPC_CHANNELS.NOTIFICATION_SET_ENABLED, enabled),
 
+  getAppLanguage: () =>
+    ipcRenderer.invoke(IPC_CHANNELS.APP_LANGUAGE_GET) as Promise<'system' | 'en' | 'zh-CN'>,
+  setAppLanguage: (language: 'system' | 'en' | 'zh-CN') =>
+    ipcRenderer.invoke(IPC_CHANNELS.APP_LANGUAGE_SET, language),
+
   // Input settings
   getAutoCapitalisation: () =>
     ipcRenderer.invoke(IPC_CHANNELS.INPUT_GET_AUTO_CAPITALISATION) as Promise<boolean>,

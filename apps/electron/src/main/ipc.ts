@@ -3484,6 +3484,16 @@ export function registerIpcHandlers(sessionManager: SessionManager, windowManage
     }
   })
 
+  ipcMain.handle(IPC_CHANNELS.APP_LANGUAGE_GET, async () => {
+    const { getAppLanguage } = await import('@craft-agent/shared/config/storage')
+    return getAppLanguage()
+  })
+
+  ipcMain.handle(IPC_CHANNELS.APP_LANGUAGE_SET, async (_event, language: 'system' | 'en' | 'zh-CN') => {
+    const { setAppLanguage } = await import('@craft-agent/shared/config/storage')
+    setAppLanguage(language)
+  })
+
   // Get auto-capitalisation setting
   ipcMain.handle(IPC_CHANNELS.INPUT_GET_AUTO_CAPITALISATION, async () => {
     const { getAutoCapitalisation } = await import('@craft-agent/shared/config/storage')

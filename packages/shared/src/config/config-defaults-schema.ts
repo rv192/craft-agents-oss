@@ -14,6 +14,7 @@ export interface ConfigDefaults {
   defaults: {
     notificationsEnabled: boolean;
     colorTheme: string;
+    appLanguage: 'system' | 'en' | 'zh-CN';
     autoCapitalisation: boolean;
     sendMessageKey: 'enter' | 'cmd-enter';
     spellCheck: boolean;
