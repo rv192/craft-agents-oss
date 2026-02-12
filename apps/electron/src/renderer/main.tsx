@@ -69,12 +69,10 @@ sentryInit(
 
 async function bootstrapRuntimeI18nPilot() {
   const pilotEnabled = import.meta.env.VITE_RUNTIME_I18N_PILOT === 'true'
-  const appLanguage = await window.electronAPI.getAppLanguage()
-  const effectiveLocale = appLanguage === 'system' ? navigator.language : appLanguage
   const pilot = createRuntimeI18nPilot({
     flag: pilotEnabled,
     whitelist: ['settings'],
-    localeProvider: () => effectiveLocale,
+    localeProvider: () => navigator.language,
   })
 
   if (!pilot.shouldRun()) {
