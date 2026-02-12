@@ -98,6 +98,17 @@ export default function AppSettingsPage() {
     window.location.reload()
   }, [])
 
+  const effectiveUiLanguage: 'en' | 'zh-CN' =
+    appLanguage === 'system'
+      ? (navigator.language.toLowerCase().startsWith('zh') ? 'zh-CN' : 'en')
+      : appLanguage
+
+  const languageSectionLabel = effectiveUiLanguage === 'zh-CN' ? '语言' : 'Language'
+  const languageSectionDescription =
+    effectiveUiLanguage === 'zh-CN'
+      ? '应用界面的显示语言。'
+      : 'Display language for the app interface.'
+
   return (
     <div className="h-full flex flex-col">
       <PanelHeader title="App" actions={<HeaderMenu route={routes.view.settings('app')} helpFeature="app-settings" />} />
@@ -129,11 +140,11 @@ export default function AppSettingsPage() {
                 </SettingsCard>
               </SettingsSection>
 
-              <SettingsSection title="Language">
+              <SettingsSection title={languageSectionLabel}>
                 <SettingsCard>
                   <SettingsSelectRow
-                    label="Language"
-                    description="Display language for the app interface."
+                    label={languageSectionLabel}
+                    description={languageSectionDescription}
                     value={appLanguage}
                     onValueChange={handleAppLanguageChange}
                     options={[
