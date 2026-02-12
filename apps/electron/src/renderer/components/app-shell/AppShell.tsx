@@ -120,6 +120,7 @@ import { hasOpenOverlay } from "@/lib/overlay-detection"
 import { clearSourceIconCaches } from "@/lib/icon-cache"
 import { useTranslation } from 'react-i18next'
 import { getAppShellLabels } from './app-shell-labels'
+import { TooltipProvider } from '@radix-ui/react-tooltip'
 
 /**
  * AppShellProps - Minimal props interface for AppShell component
