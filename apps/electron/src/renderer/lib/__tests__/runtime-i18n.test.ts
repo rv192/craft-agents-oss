@@ -1,5 +1,4 @@
 import { describe, expect, it } from 'bun:test'
-import defaultPermissions from '../../../../resources/permissions/default.json'
 import {
   applyRuntimeTranslationOverrides,
   buildLiteralTranslationMap,
@@ -153,11 +152,6 @@ describe('runtime i18n translation map', () => {
     expect(map['Read-only exploration.Blockswrites,never prompts.']).toBe('只读探索。阻止写入，且从不提示。')
     expect(map['Promptsbefore making edits.']).toBe('编辑前提示确认。')
     expect(map['Automatic execution,no prompts.']).toBe('自动执行，不提示。')
-    expect(map['Allowed']).toBe('允许')
-    expect(map['Quit']).toBe('退出')
-    expect(map['Quit the application']).toBe('退出应用')
-    expect(map['PowerShell: List directory contents (dir/ls equivalent)']).toBe('PowerShell：列出目录内容（dir/ls 等价）')
-    expect(map['PowerShell: Read file contents (cat equivalent)']).toBe('PowerShell：读取文件内容（cat 等价）')
     expect(map['Language']).toBe('语言')
     expect(map['Display language for the app interface.']).toBe('应用界面的显示语言。')
     expect(map['Follow System']).toBe('跟随系统')
@@ -165,19 +159,12 @@ describe('runtime i18n translation map', () => {
     expect(map["Any additional context you'd like Craft Agent to know..."]).toBe('任何你希望 Craft Agent 了解的额外信息...')
   })
 
-  it('covers all PowerShell comments from default permissions table', () => {
+  it('does not include permission table PowerShell comment overrides in pilot boundary', () => {
     const map = applyRuntimeTranslationOverrides({})
-    const powershellComments = (defaultPermissions.allowedBashPatterns ?? [])
-      .map((item) => (typeof item === 'string' ? item : item.comment))
-      .filter((comment): comment is string => typeof comment === 'string' && comment.startsWith('PowerShell:'))
 
-    expect(powershellComments.length).toBeGreaterThan(0)
-
-    const missing = powershellComments.filter((comment) => {
-      return !map[comment] && !map[comment.replace('PowerShell: ', 'PowerShell：')]
-    })
-
-    expect(missing).toEqual([])
+    expect(map['PowerShell: List directory contents (dir/ls equivalent)']).toBeUndefined()
+    expect(map['PowerShell: Read file contents (cat equivalent)']).toBeUndefined()
+    expect(map['Allowed']).toBeUndefined()
   })
 })
 
