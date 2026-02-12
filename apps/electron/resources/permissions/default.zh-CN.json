@@ -1,6 +1,5 @@
 {
-  "name": "默认权限",
-  "description": "探索模式下默认允许的只读 Bash 与 MCP 模式。可编辑此文件来自定义哪些命令可在无需确认时执行。",
+  "version": "2026-02-07",
 
   "allowedBashPatterns": [
     { "pattern": "^ls\\b", "comment": "列出目录内容" },
@@ -124,7 +123,83 @@
 
     { "pattern": "^man\\b", "comment": "显示命令手册页" },
     { "pattern": "--help\\b", "comment": "显示命令帮助" },
-    { "pattern": "-h\\b$", "comment": "显示命令帮助（短参数）" }
+    { "pattern": "-h\\b$", "comment": "显示命令帮助（短参数）" },
+
+    { "pattern": "^Get-ChildItem\\b", "comment": "PowerShell: 列出目录内容（dir/ls 等价）" },
+    { "pattern": "^Get-Content\\b", "comment": "PowerShell: 读取文件内容（cat 等价）" },
+    { "pattern": "^Get-Item\\b", "comment": "PowerShell: 获取文件/目录项属性" },
+    { "pattern": "^Get-ItemProperty\\b", "comment": "PowerShell: 获取项属性" },
+    { "pattern": "^Get-Location\\b", "comment": "PowerShell: 打印当前目录（pwd 等价）" },
+    { "pattern": "^Get-Process\\b", "comment": "PowerShell: 列出运行中的进程" },
+    { "pattern": "^Get-Service\\b", "comment": "PowerShell: 列出服务" },
+    { "pattern": "^Get-Command\\b", "comment": "PowerShell: 列出可用命令" },
+    { "pattern": "^Get-Help\\b", "comment": "PowerShell: 显示命令帮助" },
+    { "pattern": "^Get-Module\\b", "comment": "PowerShell: 列出已加载模块" },
+    { "pattern": "^Get-Variable\\b", "comment": "PowerShell: 列出变量" },
+    { "pattern": "^Get-Alias\\b", "comment": "PowerShell: 列出命令别名" },
+    { "pattern": "^Get-Host\\b", "comment": "PowerShell: 获取主机信息" },
+    { "pattern": "^Get-Date\\b", "comment": "PowerShell: 获取当前日期/时间" },
+    { "pattern": "^Get-Culture\\b", "comment": "PowerShell: 获取区域设置" },
+    { "pattern": "^Get-ComputerInfo\\b", "comment": "PowerShell: 获取系统信息" },
+    { "pattern": "^Get-PSDrive\\b", "comment": "PowerShell: 列出驱动器" },
+    { "pattern": "^Get-History\\b", "comment": "PowerShell: 获取命令历史" },
+    { "pattern": "^Get-EventLog\\b", "comment": "PowerShell: 读取事件日志" },
+    { "pattern": "^Get-WinEvent\\b", "comment": "PowerShell: 读取 Windows 事件" },
+    { "pattern": "^Get-Acl\\b", "comment": "PowerShell: 获取访问控制列表" },
+    { "pattern": "^Get-NetAdapter\\b", "comment": "PowerShell: 列出网络适配器" },
+    { "pattern": "^Get-NetIPAddress\\b", "comment": "PowerShell: 获取 IP 地址" },
+    { "pattern": "^Get-NetRoute\\b", "comment": "PowerShell: 获取路由表" },
+    { "pattern": "^Get-DnsClientServerAddress\\b", "comment": "PowerShell: 获取 DNS 服务器地址" },
+    { "pattern": "^Get-Disk\\b", "comment": "PowerShell: 列出磁盘" },
+    { "pattern": "^Get-Volume\\b", "comment": "PowerShell: 列出卷" },
+    { "pattern": "^Get-Partition\\b", "comment": "PowerShell: 列出磁盘分区" },
+    { "pattern": "^Get-Package\\b", "comment": "PowerShell: 列出已安装包" },
+    { "pattern": "^Get-InstalledModule\\b", "comment": "PowerShell: 列出已安装的 PowerShell 模块" },
+
+    { "pattern": "^Test-Path\\b", "comment": "PowerShell: 测试路径是否存在" },
+    { "pattern": "^Test-Connection\\b", "comment": "PowerShell: Ping 等价命令" },
+    { "pattern": "^Test-NetConnection\\b", "comment": "PowerShell: 测试网络连通性" },
+
+    { "pattern": "^Resolve-Path\\b", "comment": "PowerShell: 将路径解析为完整路径" },
+    { "pattern": "^Split-Path\\b", "comment": "PowerShell: 将路径拆分为各部分" },
+    { "pattern": "^Join-Path\\b", "comment": "PowerShell: 拼接路径组件" },
+
+    { "pattern": "^Measure-Object\\b", "comment": "PowerShell: 测量/计数对象" },
+    { "pattern": "^Measure-Command\\b", "comment": "PowerShell: 测量执行时间" },
+
+    { "pattern": "^Compare-Object\\b", "comment": "PowerShell: 比较两个对象" },
+    { "pattern": "^Select-Object\\b", "comment": "PowerShell: 选择对象属性" },
+    { "pattern": "^Sort-Object\\b", "comment": "PowerShell: 排序对象" },
+    { "pattern": "^Group-Object\\b", "comment": "PowerShell: 按属性分组对象" },
+    { "pattern": "^Where-Object\\b", "comment": "PowerShell: 筛选对象" },
+    { "pattern": "^ForEach-Object\\b", "comment": "PowerShell: 遍历对象" },
+
+    { "pattern": "^Format-List\\b", "comment": "PowerShell: 将输出格式化为列表" },
+    { "pattern": "^Format-Table\\b", "comment": "PowerShell: 将输出格式化为表格" },
+    { "pattern": "^Format-Wide\\b", "comment": "PowerShell: 将输出格式化为宽表" },
+
+    { "pattern": "^ConvertTo-Json\\b", "comment": "PowerShell: 转换为 JSON" },
+    { "pattern": "^ConvertFrom-Json\\b", "comment": "PowerShell: 解析 JSON" },
+    { "pattern": "^ConvertTo-Csv\\b", "comment": "PowerShell: 转换为 CSV" },
+    { "pattern": "^ConvertFrom-Csv\\b", "comment": "PowerShell: 解析 CSV" },
+    { "pattern": "^ConvertTo-Xml\\b", "comment": "PowerShell: 转换为 XML" },
+
+    { "pattern": "^Select-String\\b", "comment": "PowerShell: 在文件中搜索字符串（grep 等价）" },
+    { "pattern": "^Find-Module\\b", "comment": "PowerShell: 在库中搜索模块" },
+    { "pattern": "^Find-Package\\b", "comment": "PowerShell: 搜索包" },
+
+    { "pattern": "^\\$PSVersionTable\\b", "comment": "PowerShell: 版本信息变量" },
+    { "pattern": "^\\$env:", "comment": "PowerShell: 环境变量访问" },
+    { "pattern": "^\\$PWD\\b", "comment": "PowerShell: 当前目录变量" },
+    { "pattern": "^\\$HOME\\b", "comment": "PowerShell: 主目录变量" },
+    { "pattern": "^\\$Host\\b", "comment": "PowerShell: 主机信息变量" },
+
+    { "pattern": "^dir\\b", "comment": "PowerShell/CMD: 列出目录（Get-ChildItem 别名）" },
+    { "pattern": "^gci\\b", "comment": "PowerShell: Get-ChildItem 别名" },
+    { "pattern": "^gc\\b", "comment": "PowerShell: Get-Content 别名" },
+    { "pattern": "^gps\\b", "comment": "PowerShell: Get-Process 别名" },
+    { "pattern": "^gsv\\b", "comment": "PowerShell: Get-Service 别名" },
+    { "pattern": "^gcm\\b", "comment": "PowerShell: Get-Command 别名" }
   ],
 
   "allowedMcpPatterns": [
