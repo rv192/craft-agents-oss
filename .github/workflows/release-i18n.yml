@@ -107,17 +107,25 @@ jobs:
             package_cmd: npx electron-builder --config electron-builder.yml --project apps/electron --mac dmg --arm64
             artifact_name: release-assets-mac-arm64
             artifact_path: |
-              apps/electron/release/*.dmg
-              apps/electron/release/*.zip
-              apps/electron/release/*.yml
+              apps/electron/release/Craft-Agent-arm64.dmg
+              apps/electron/release/Craft-Agent-arm64.zip
+              apps/electron/release/Craft-Agent-arm64.yml
+          - name: mac-x64
+            os: macos-latest
+            package_cmd: npx electron-builder --config electron-builder.yml --project apps/electron --mac dmg --x64
+            artifact_name: release-assets-mac-x64
+            artifact_path: |
+              apps/electron/release/Craft-Agent-x64.dmg
+              apps/electron/release/Craft-Agent-x64.zip
+              apps/electron/release/Craft-Agent-x64.yml
           - name: win-x64
             os: windows-latest
             package_cmd: npx electron-builder --config electron-builder.yml --project apps/electron --win nsis --x64
             artifact_name: release-assets-win-x64
             artifact_path: |
-              apps/electron/release/*.exe
-              apps/electron/release/*.blockmap
-              apps/electron/release/*.yml
+              apps/electron/release/Craft-Agent-x64.exe
+              apps/electron/release/Craft-Agent-x64.exe.blockmap
+              apps/electron/release/Craft-Agent-x64.yml
     runs-on: ${{ matrix.target.os }}
     needs: prepare-notes
     steps:
