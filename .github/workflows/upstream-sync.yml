@@ -87,7 +87,7 @@ jobs:
         run: |
           set -euo pipefail
           git remote add upstream "https://github.com/${UPSTREAM_REPO}.git"
-          git fetch --tags upstream
+          git fetch --tags --force upstream
           git fetch origin
 
       - name: Configure git identity for merge commit
