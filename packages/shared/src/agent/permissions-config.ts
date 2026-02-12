@@ -79,9 +79,21 @@ export function ensureDefaultPermissions(): void {
 
   const destPath = join(permissionsDir, 'default.json');
   const srcPath = join(bundledPermissionsDir, 'default.json');
+  const localizedDestPath = join(permissionsDir, 'default.zh-CN.json');
+  const localizedSrcPath = join(bundledPermissionsDir, 'default.zh-CN.json');
 
   if (!existsSync(srcPath)) {
     return;
+  }
+
+  if (existsSync(localizedSrcPath) && !existsSync(localizedDestPath)) {
+    try {
+      const localizedContent = readFileSync(localizedSrcPath, 'utf-8');
+      writeFileSync(localizedDestPath, localizedContent, 'utf-8');
+      debug('[Permissions] Installed default.zh-CN.json');
+    } catch (error) {
+      debug('[Permissions] Error installing default.zh-CN.json:', error);
+    }
   }
 
   // New install or corrupt file - copy fresh from bundle
