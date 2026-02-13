@@ -424,6 +424,7 @@ function WorkspaceOverrideCard({ workspace, llmConnections, onSettingsChange }: 
                     value: conn.slug,
                     label: conn.name,
                     description: conn.providerType === 'anthropic' ? 'Anthropic' :
+                                 conn.providerType === 'anthropic_compat' ? 'Anthropic Compatible' :
                                  conn.providerType === 'openai' ? 'OpenAI' :
                                  conn.providerType === 'copilot' ? 'GitHub Copilot' :
                                  conn.providerType || 'Unknown',
@@ -734,6 +735,7 @@ export default function AiSettingsPage() {
                       value: conn.slug,
                       label: conn.name,
                       description: conn.providerType === 'anthropic' ? 'Anthropic API' :
+                                   conn.providerType === 'anthropic_compat' ? 'Anthropic Compatible' :
                                    conn.providerType === 'openai' ? 'OpenAI API' :
                                    conn.providerType === 'copilot' ? 'GitHub Copilot' :
                                    conn.providerType === 'openai_compat' ? 'OpenAI Compatible' :

@@ -24,8 +24,10 @@ const TRANSLATABLE_ATTRIBUTES = ['title', 'placeholder', 'aria-label'] as const
  * DO NOT add static UI text here - use resource files instead.
  */
 const RUNTIME_LITERAL_OVERRIDES: Record<string, string> = {
-  // EMPTY - All translations migrated to resource files
-  // See packages/shared/locales/zh-CN/common.json runtimeFallback section
+  'What should I modify?': '你希望我改哪里？',
+  'Just tell me what to change': '直接告诉我改什么',
+  'Describe the update': '描述你的修改',
+  "Any additional context you'd like Craft Agent to know...": '任何你希望 Craft Agent 了解的额外信息...',
 }
 
 const RUNTIME_SUBSTRING_OVERRIDES: Record<string, string> = {
@@ -170,8 +172,6 @@ export function createRuntimeI18nPilot(options?: {
   }
 
   const translateElement = (el: Element, map: TranslationMap) => {
-    if (shouldSkipElement(el)) return
-
     for (const attr of TRANSLATABLE_ATTRIBUTES) {
       const value = el.getAttribute(attr)
       if (value) {
@@ -182,10 +182,13 @@ export function createRuntimeI18nPilot(options?: {
       }
     }
 
+    if (shouldSkipElement(el)) return
+
     const walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT, null)
-    let node: Node | null
-    while ((node = walker.nextNode())) {
+    let node: Node | null = walker.nextNode()
+    while (node) {
       translateTextNode(node as Text, map)
+      node = walker.nextNode()
     }
   }
 
@@ -198,11 +201,29 @@ export function createRuntimeI18nPilot(options?: {
             translateElement(node as Element, map)
           } else if (node.nodeType === Node.TEXT_NODE) {
             translateTextNode(node as Text, map)
+          } else if (node.nodeType === Node.DOCUMENT_FRAGMENT_NODE) {
+            node.childNodes.forEach((child) => {
+              if (child.nodeType === Node.ELEMENT_NODE) {
+                translateElement(child as Element, map)
+              } else if (child.nodeType === Node.TEXT_NODE) {
+                translateTextNode(child as Text, map)
+              }
+            })
           }
         })
+      } else if (mutation.type === 'attributes') {
+        if (mutation.target.nodeType === Node.ELEMENT_NODE) {
+          translateElement(mutation.target as Element, map)
+        }
+      } else if (mutation.type === 'characterData') {
+        if (mutation.target.nodeType === Node.TEXT_NODE) {
+          translateTextNode(mutation.target as Text, map)
+        }
       }
     }
   }
+
+  const attributeFilter = [...TRANSLATABLE_ATTRIBUTES]
 
   return {
     start(sourceTree: unknown, targetTree: unknown) {
@@ -212,10 +233,8 @@ export function createRuntimeI18nPilot(options?: {
         buildLiteralTranslationMap(sourceTree, targetTree)
       )
 
-      // Initial translation
       translateElement(document.body, map)
 
-      // Setup MutationObserver
       observer = new MutationObserver((mutations) => {
         pendingMutations.push(...mutations)
         if (!processingQueued) {
@@ -230,8 +249,9 @@ export function createRuntimeI18nPilot(options?: {
       observer.observe(document.body, {
         childList: true,
         subtree: true,
+        characterData: true,
         attributes: true,
-        attributeFilter: TRANSLATABLE_ATTRIBUTES,
+        attributeFilter,
       })
     },
 
