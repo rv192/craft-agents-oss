@@ -88,6 +88,7 @@ const RUNTIME_LITERAL_OVERRIDES: Record<string, string> = {
   Number: '数字',
   String: '字符串',
   Code: '代码',
+  Allowed: '允许',
   'Read-only exploration.Blockswrites,never prompts.': '只读探索。阻止写入，且从不提示。',
   'Promptsbefore making edits.': '编辑前提示确认。',
   'Automatic execution,no prompts.': '自动执行，不提示。',
