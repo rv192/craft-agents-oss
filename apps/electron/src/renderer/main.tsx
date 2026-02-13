@@ -72,7 +72,7 @@ async function bootstrapRuntimeI18nPilot() {
   const appLanguage = await window.electronAPI.getAppLanguage()
   const pilot = createRuntimeI18nPilot({
     flag: pilotEnabled,
-    whitelist: ['settings'],
+    whitelist: ['settings', 'allSessions', 'flagged', 'archived', 'state', 'label', 'view', 'sources', 'skills'],
     localeProvider: () => (appLanguage === 'system' ? navigator.language : appLanguage),
   })
 

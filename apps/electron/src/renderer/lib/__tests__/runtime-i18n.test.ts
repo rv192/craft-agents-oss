@@ -2,6 +2,7 @@ import { describe, expect, it } from 'bun:test'
 import {
   applyRuntimeTranslationOverrides,
   buildLiteralTranslationMap,
+  createRuntimeI18nPilot,
   shouldEnableRuntimeI18n,
   translateText,
 } from '../runtime-i18n'
@@ -39,6 +40,27 @@ describe('runtime i18n pilot guards', () => {
     })
 
     expect(enabled).toBe(false)
+  })
+
+  it('enables for non-settings routes when route prefix is in whitelist', () => {
+    const enabled = shouldEnableRuntimeI18n({
+      enabled: true,
+      locale: 'zh-CN',
+      route: '/allSessions/session/abc123',
+      whitelist: ['/settings', '/allSessions'],
+    })
+
+    expect(enabled).toBe(true)
+  })
+
+  it('defaults to running for allSessions route in zh locale when pilot flag is enabled', () => {
+    const pilot = createRuntimeI18nPilot({
+      flag: true,
+      localeProvider: () => 'zh-CN',
+      routeProvider: () => 'allSessions/session/abc123',
+    })
+
+    expect(pilot.shouldRun()).toBe(true)
   })
 
   it('disables for non-Chinese locale', () => {
