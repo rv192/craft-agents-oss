@@ -132,6 +132,11 @@ const RUNTIME_LITERAL_OVERRIDES: Record<string, string> = {
   'Local Folders': '本地文件夹',
   'New Session': '新会话',
   'Cancelled': '已取消',
+  'What would you like to work on?': '你想做什么？',
+  'Type # to apply labels to this conversation': '输入 # 为对话添加标签',
+  'Backlog': '待办事项',
+  'Todo': '待办',
+  'Needs Review': '需要审核',
 }
 
 const RUNTIME_SUBSTRING_OVERRIDES: Record<string, string> = {
