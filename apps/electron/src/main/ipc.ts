@@ -3501,6 +3501,10 @@ export function registerIpcHandlers(sessionManager: SessionManager, windowManage
   ipcMain.handle(IPC_CHANNELS.APP_LANGUAGE_SET, async (_event, language: 'system' | 'en' | 'zh-CN') => {
     const { setAppLanguage } = await import('@craft-agent/shared/config/storage')
     setAppLanguage(language)
+
+    for (const managed of windowManager.getAllWindows()) {
+      managed.window.webContents.send(IPC_CHANNELS.APP_LANGUAGE_CHANGED, language)
+    }
   })
 
   // Get auto-capitalisation setting

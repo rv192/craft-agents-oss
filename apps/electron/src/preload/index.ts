@@ -430,6 +430,15 @@ const api: ElectronAPI = {
     ipcRenderer.invoke(IPC_CHANNELS.APP_LANGUAGE_GET) as Promise<'system' | 'en' | 'zh-CN'>,
   setAppLanguage: (language: 'system' | 'en' | 'zh-CN') =>
     ipcRenderer.invoke(IPC_CHANNELS.APP_LANGUAGE_SET, language),
+  onAppLanguageChanged: (callback: (language: 'system' | 'en' | 'zh-CN') => void) => {
+    const handler = (_event: Electron.IpcRendererEvent, language: 'system' | 'en' | 'zh-CN') => {
+      callback(language)
+    }
+    ipcRenderer.on(IPC_CHANNELS.APP_LANGUAGE_CHANGED, handler)
+    return () => {
+      ipcRenderer.removeListener(IPC_CHANNELS.APP_LANGUAGE_CHANGED, handler)
+    }
+  },
 
   // Input settings
   getAutoCapitalisation: () =>

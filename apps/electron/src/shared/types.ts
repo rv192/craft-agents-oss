@@ -822,6 +822,7 @@ export const IPC_CHANNELS = {
 
   APP_LANGUAGE_GET: 'appLanguage:get',
   APP_LANGUAGE_SET: 'appLanguage:set',
+  APP_LANGUAGE_CHANGED: 'appLanguage:changed',
 
   // Input settings
   INPUT_GET_AUTO_CAPITALISATION: 'input:getAutoCapitalisation',
@@ -1126,6 +1127,7 @@ export interface ElectronAPI {
 
   getAppLanguage(): Promise<'system' | 'en' | 'zh-CN'>
   setAppLanguage(language: 'system' | 'en' | 'zh-CN'): Promise<void>
+  onAppLanguageChanged(callback: (language: 'system' | 'en' | 'zh-CN') => void): () => void
 
   // Input settings
   getAutoCapitalisation(): Promise<boolean>
