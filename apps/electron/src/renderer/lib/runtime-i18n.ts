@@ -105,6 +105,15 @@ const RUNTIME_LITERAL_OVERRIDES: Record<string, string> = {
     '为所有工具调用添加动作名称和意图说明，为会话提供更丰富的活动上下文。',
   'Sources auto-enabled for new sessions': '新会话自动启用的来源',
   'No sources configured in this workspace.': '此工作区尚未配置来源。',
+  'No sources configured': '尚未配置来源',
+  'No sources configured.': '尚未配置来源。',
+  'No local folder sources configured.': '尚未配置本地文件夹来源。',
+  'No MCP sources configured.': '尚未配置 MCP 来源。',
+  'No API sources configured.': '尚未配置 API 来源。',
+  'No sessions yet': '还没有会话',
+  'Sessions with your agent appear here. Start one to get going.': '与智能体的会话将显示在这里。开始一个会话吧。',
+  'No archived sessions': '没有已归档会话',
+  'Sessions you archive will appear here. Archive sessions to keep your list tidy while preserving conversations.': '已归档的会话将显示在这里。归档会话可以让列表保持整洁，同时保留对话内容。',
 }
 
 const RUNTIME_SUBSTRING_OVERRIDES: Record<string, string> = {
@@ -210,7 +219,7 @@ export function createRuntimeI18nPilot(options?: {
   localeProvider?: () => string
 }) {
   const enabledByFlag = options?.flag ?? false
-  const whitelist = options?.whitelist ?? ['settings']
+  const whitelist = options?.whitelist ?? ['settings', 'allSessions', 'flagged', 'archived', 'state', 'label', 'view', 'sources', 'skills']
   const getRoute = options?.routeProvider ?? (() => {
     const params = new URLSearchParams(window.location.search)
     return params.get('route') ?? ''
