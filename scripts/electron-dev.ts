@@ -14,8 +14,10 @@ const DIST_DIR = join(ELECTRON_DIR, "dist");
 
 // MCP server paths (for Codex sessions)
 const SESSION_SERVER_DIR = join(ROOT_DIR, "packages/session-mcp-server");
+const SESSION_SERVER_SOURCE = join(SESSION_SERVER_DIR, "src/index.ts");
 const SESSION_SERVER_OUTPUT = join(SESSION_SERVER_DIR, "dist/index.js");
 const BRIDGE_SERVER_DIR = join(ROOT_DIR, "packages/bridge-mcp-server");
+const BRIDGE_SERVER_SOURCE = join(BRIDGE_SERVER_DIR, "src/index.ts");
 const BRIDGE_SERVER_OUTPUT = join(BRIDGE_SERVER_DIR, "dist/index.js");
 
 // Platform-specific binary paths (bun creates .exe on Windows, no extension on Unix)
@@ -150,6 +152,26 @@ function copyResources(): void {
 // Build MCP servers for Codex sessions (one-time, no watch needed)
 async function buildMcpServers(): Promise<void> {
   console.log("🌉 Building MCP servers for Codex sessions...");
+
+  const hasSessionSource = existsSync(SESSION_SERVER_SOURCE);
+  const hasBridgeSource = existsSync(BRIDGE_SERVER_SOURCE);
+
+  if (!hasSessionSource || !hasBridgeSource) {
+    const hasSessionDist = existsSync(SESSION_SERVER_OUTPUT);
+    const hasBridgeDist = existsSync(BRIDGE_SERVER_OUTPUT);
+
+    if (hasSessionDist && hasBridgeDist) {
+      console.log("ℹ️ MCP server source not found; using prebuilt dist artifacts");
+      return;
+    }
+
+    const missingTargets: string[] = [];
+    if (!hasSessionSource && !hasSessionDist) missingTargets.push("session-mcp-server (missing src/index.ts and dist/index.js)");
+    if (!hasBridgeSource && !hasBridgeDist) missingTargets.push("bridge-mcp-server (missing src/index.ts and dist/index.js)");
+
+    console.error("❌ MCP server artifacts unavailable:", missingTargets.join(", "));
+    process.exit(1);
+  }
 
   // Ensure dist directories exist
   const sessionDistDir = join(SESSION_SERVER_DIR, "dist");
