@@ -230,6 +230,10 @@ export function applyRuntimeTranslationOverrides(map: TranslationMap): Translati
   return next
 }
 
+export function getRuntimeLiteralOverrides(): Record<string, string> {
+  return { ...RUNTIME_LITERAL_OVERRIDES }
+}
+
 export function createRuntimeI18nPilot(options?: {
   flag?: boolean
   whitelist?: string[]

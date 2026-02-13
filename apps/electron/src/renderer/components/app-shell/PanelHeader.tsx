@@ -28,7 +28,7 @@
  */
 
 import * as React from 'react'
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { motion } from 'motion/react'
 import { ChevronDown } from 'lucide-react'
 import { cn } from '@/lib/utils'
@@ -38,6 +38,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { StyledDropdownMenuContent } from '@/components/ui/styled-dropdown'
+import { getRuntimeLiteralOverrides } from '@/lib/runtime-i18n'
 
 // Spring transition for smooth animations (matches sidebar)
 const springTransition = { type: 'spring' as const, stiffness: 300, damping: 30 }
@@ -87,6 +88,16 @@ export function PanelHeader({
 
   // Controlled dropdown state for anchoring to chevron while keeping full title clickable
   const [dropdownOpen, setDropdownOpen] = useState(false)
+  const titleRef = useRef<HTMLHeadingElement>(null)
+
+  useEffect(() => {
+    if (!title || !titleRef.current) return
+    const overrides = getRuntimeLiteralOverrides()
+    const translated = overrides[title]
+    if (translated) {
+      titleRef.current.textContent = translated
+    }
+  }, [title])
 
   // Title content - either static or interactive with dropdown
   // Shimmer effect shows during title regeneration
@@ -97,7 +108,7 @@ export function PanelHeader({
       transition={{ duration: 0.15 }}
       className="flex items-center gap-1"
     >
-      <h1 className={cn(
+      <h1 ref={titleRef} className={cn(
         "text-sm font-semibold truncate font-sans leading-tight",
         isRegeneratingTitle && "animate-shimmer-text"
       )}>{title}</h1>
@@ -113,6 +124,7 @@ export function PanelHeader({
             <DropdownMenu open={dropdownOpen} onOpenChange={setDropdownOpen}>
               {/* Wrapper button for the whole clickable area */}
               <button
+                type="button"
                 onClick={() => setDropdownOpen(true)}
                 className={cn(
                   "flex items-center gap-1 px-2 py-1 rounded-md titlebar-no-drag",

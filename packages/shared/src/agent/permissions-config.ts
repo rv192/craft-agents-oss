@@ -86,7 +86,7 @@ export function ensureDefaultPermissions(): void {
     return;
   }
 
-  if (existsSync(localizedSrcPath)) {
+  if (existsSync(localizedSrcPath) && !existsSync(localizedDestPath)) {
     try {
       const localizedContent = readFileSync(localizedSrcPath, 'utf-8');
       writeFileSync(localizedDestPath, localizedContent, 'utf-8');
