@@ -164,7 +164,7 @@ describe('runtime i18n translation map', () => {
 
     expect(map['PowerShell: List directory contents (dir/ls equivalent)']).toBeUndefined()
     expect(map['PowerShell: Read file contents (cat equivalent)']).toBeUndefined()
-    expect(map['Allowed']).toBeUndefined()
+    expect(map['Allowed']).toBe('允许')
   })
 })
 
