@@ -65,7 +65,7 @@ export function shouldEnableRuntimeI18n(input: RuntimeI18nGuardInput): boolean {
   const route = input.route.trim()
   if (!route) return false
 
-  return input.whitelist.some((prefix) => route === prefix || route.startsWith(\`\${prefix}/\`))
+  return input.whitelist.some((prefix) => route === prefix || route.startsWith(`${prefix}/`))
 }
 
 export function buildLiteralTranslationMap(
