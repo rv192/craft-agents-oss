@@ -108,12 +108,22 @@ const RUNTIME_LITERAL_OVERRIDES: Record<string, string> = {
   'No sources configured': '尚未配置来源',
   'No sources configured.': '尚未配置来源。',
   'No local folder sources configured.': '尚未配置本地文件夹来源。',
+  'No local folder sources configured': '尚未配置本地文件夹来源',
   'No MCP sources configured.': '尚未配置 MCP 来源。',
+  'No MCP sources configured': '尚未配置 MCP 来源',
   'No API sources configured.': '尚未配置 API 来源。',
+  'No API sources configured': '尚未配置 API 来源',
   'No sessions yet': '还没有会话',
   'Sessions with your agent appear here. Start one to get going.': '与智能体的会话将显示在这里。开始一个会话吧。',
   'No archived sessions': '没有已归档会话',
   'Sessions you archive will appear here. Archive sessions to keep your list tidy while preserving conversations.': '已归档的会话将显示在这里。归档会话可以让列表保持整洁，同时保留对话内容。',
+  'All Sessions': '所有会话',
+  'Archived': '已归档',
+  'Flagged': '已标记',
+  'Status': '状态',
+  'Labels': '标签',
+  'Sources': '来源',
+  'Skills': '技能',
 }
 
 const RUNTIME_SUBSTRING_OVERRIDES: Record<string, string> = {
