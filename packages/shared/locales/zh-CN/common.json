@@ -571,5 +571,30 @@
       "deny": "拒绝"
     },
     "tip": "\"始终允许\"会在当前会话中记住此命令"
+  },
+  "runtimeFallback": {
+    "_description": "兜底翻译，用于动态文本或拼接变体",
+    "statusLabels": {
+      "backlog": "待办事项",
+      "todo": "待办",
+      "inProgress": "进行中",
+      "needsReview": "需要审核",
+      "done": "已完成",
+      "cancelled": "已取消"
+    },
+    "concatenated": {
+      "usingDefaults": "使用默认值",
+      "usingDefaultsCapitalized": "使用默认值",
+      "nameIconWorkingDir": "名称、图标、工作目录",
+      "nameIconWorkingDirSpaced": "名称、图标、工作目录",
+      "sendKeySpellCheck": "发送键、拼写检查",
+      "sendKeySpellCheckSpaced": "发送键、拼写检查",
+      "promptsBeforeMakingEdits": "编辑前提示确认。",
+      "automaticExecutionNoPrompts": "自动执行，不提示。",
+      "readOnlyExploration": "只读探索。阻止写入，且从不提示。"
+    },
+    "typos": {
+      "userPreferencences": "用户偏好"
+    }
   }
 }
