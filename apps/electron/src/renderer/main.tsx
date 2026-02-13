@@ -68,17 +68,13 @@ sentryInit(
 )
 
 async function bootstrapRuntimeI18nPilot() {
-  const pilotEnabled = import.meta.env.VITE_RUNTIME_I18N_PILOT === 'true'
+  const pilotEnabled = import.meta.env.VITE_RUNTIME_I18N_PILOT !== 'false'
   const appLanguage = await window.electronAPI.getAppLanguage()
   const pilot = createRuntimeI18nPilot({
     flag: pilotEnabled,
     whitelist: ['settings', 'allSessions', 'flagged', 'archived', 'state', 'label', 'view', 'sources', 'skills'],
     localeProvider: () => (appLanguage === 'system' ? navigator.language : appLanguage),
   })
-
-  if (!pilot.shouldRun()) {
-    return
-  }
 
   const localeModules = import.meta.glob('../../../../packages/shared/locales/{en,zh-CN}/*.json', {
     eager: true,
@@ -105,7 +101,7 @@ async function bootstrapRuntimeI18nPilot() {
     return
   }
 
-  pilot.start({ source: enResources, target: zhResources })
+  pilot.start(enResources, zhResources)
 }
 
 void bootstrapRuntimeI18nPilot().catch((error) => {
