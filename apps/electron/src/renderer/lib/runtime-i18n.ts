@@ -24,29 +24,8 @@ const TRANSLATABLE_ATTRIBUTES = ['title', 'placeholder', 'aria-label'] as const
  * DO NOT add static UI text here - use resource files instead.
  */
 const RUNTIME_LITERAL_OVERRIDES: Record<string, string> = {
-  // Dynamic status labels (from user config, cannot be predetermined)
-  // These come from workspace status configuration
-  'Backlog': '待办事项',
-  'Todo': '待办',
-  'In Progress': '进行中',
-  'Needs Review': '需要审核',
-  'Done': '已完成',
-  'Cancelled': '已取消',
-  
-  // Concatenated text variants (punctuation/formatting differences)
-  // These are variations of text that's in resource files but with different punctuation
-  'Using defaults': '使用默认值',
-  'Using Defaults': '使用默认值',
-  'Name,icon,working directory': '名称、图标、工作目录',
-  'Name, icon, working directory': '名称、图标、工作目录',
-  'Send key,spell check': '发送键、拼写检查',
-  'Send key, spell check': '发送键、拼写检查',
-  'Promptsbefore making edits.': '编辑前提示确认。',
-  'Automatic execution,no prompts.': '自动执行，不提示。',
-  'Read-only exploration.Blockswrites,never prompts.': '只读探索。阻止写入，且从不提示。',
-  
-  // Typo variants that exist in source code
-  'User preferencences': '用户偏好',
+  // EMPTY - All translations migrated to resource files
+  // See packages/shared/locales/zh-CN/common.json runtimeFallback section
 }
 
 const RUNTIME_SUBSTRING_OVERRIDES: Record<string, string> = {
