@@ -9,134 +9,44 @@ type RuntimeI18nGuardInput = {
 
 const TRANSLATABLE_ATTRIBUTES = ['title', 'placeholder', 'aria-label'] as const
 
+/**
+ * Runtime literal overrides - ONLY for dynamic or concatenated text
+ * 
+ * NOTE: Most translations have been migrated to resource files:
+ * - packages/shared/locales/zh-CN/settings.json
+ * - packages/shared/locales/zh-CN/common.json
+ * 
+ * This map should only contain:
+ * 1. Dynamic text from external configs (e.g., status labels from user config)
+ * 2. Concatenated/generated text that can't be keyed
+ * 3. Third-party library text
+ * 
+ * DO NOT add static UI text here - use resource files instead.
+ */
 const RUNTIME_LITERAL_OVERRIDES: Record<string, string> = {
-  'Notifications and updates': '通知与更新',
-  Interface: '界面',
-  General: '常规',
-  'List Navigation': '列表导航',
-  'Chat Input': '聊天输入',
-  'Default Sources': '默认来源',
-  'Settings for new chats when no workspace override is set.': '用于新聊天的设置（当未设置工作区覆盖时）。',
-  'API connection for new chats': '新聊天的 API 连接',
-  'API Connections for new chats': '新聊天的 API 连接',
-  'Workspace Overrides': '工作区覆盖',
-  'Override default settings per workspace.': '按工作区覆盖默认设置。',
-  'Using defaults': '使用默认值',
-  'Using Defaults': '使用默认值',
-  'Use default': '使用默认值',
-  'Inherit from app settings': '继承应用设置',
-  Power: '电源',
-  'Keep screen awake': '保持屏幕常亮',
-  'Prevent the screen from turning off while sessions are running': '在会话运行期间防止屏幕关闭',
-  'Prevent the screen from turning off while sessions are running.': '在会话运行期间防止屏幕关闭。',
-  Model: '模型',
-  thinking: '思考',
-  connections: '连接',
-  'Model,thinking,connections': '模型、思考、连接',
-  'Model, thinking, connections': '模型、思考、连接',
-  Connections: '连接',
-  'Manage your AI provider connections.': '管理你的 AI 提供商连接。',
-  'Custom Anthropic-Compatible': '自定义 Anthropic 兼容连接',
-  'Re-authenticate': '重新认证',
-  'Validate Connection': '验证连接',
-  'Add Connection': '添加连接',
-  '+ Add Connection': '+ 添加连接',
-  'Ask then edit': '询问后编辑',
-  'Ask Then Edit': '询问后编辑',
-  'Ask to Edit': '询问后编辑',
-  'Read-only, no changes allowed': '只读，不允许更改',
-  'Prompts before making edits': '编辑前提示确认',
-  'Full autonomous execution': '完全自动执行',
-  'Explore mode rules': '探索模式规则',
-  'Keyboard shortcuts': '键盘快捷键',
-  Quit: '退出',
-  'Quit the application': '退出应用程序',
-  'Toggle Theme': '切换主题',
-  'Focus Sidebar': '聚焦侧边栏',
-  'Focus Session List': '聚焦会话列表',
-  'Focus Chat': '聚焦聊天',
-  'Focus Next Zone': '聚焦下一区域',
-  'Select All Sessions': '选择所有会话',
-  'Clear Selection': '清除选择',
-  'Stop Processing': '停止处理',
-  'Cycle Permission Mode': '切换权限模式',
-  'Next Search Match': '下一个搜索匹配',
-  'Previous Search Match': '上一个搜索匹配',
-  'Open context menu': '打开上下文菜单',
-  'Go Back': '返回',
-  'Go Forward': '前进',
-  'User preferences': '用户偏好',
-  'User preferencences': '用户偏好',
-  Name: '名称',
-  Icon: '图标',
-  'working directory': '工作目录',
-  'Name,icon,working directory': '名称、图标、工作目录',
-  'Name, icon, working directory': '名称、图标、工作目录',
-  'spell check': '拼写检查',
-  'Send key,spell check': '发送键、拼写检查',
-  'Send key, spell check': '发送键、拼写检查',
-  'Manage session labels': '管理会话标签',
-  Development: '开发',
-  Bug: '缺陷',
-  Automation: '自动化',
-  Content: '内容',
-  Writing: '写作',
-  Research: '研究',
-  Design: '设计',
-  Priority: '优先级',
-  Project: '项目',
-  Number: '数字',
-  String: '字符串',
-  Code: '代码',
-  Allowed: '允许',
-  'Read-only exploration.Blockswrites,never prompts.': '只读探索。阻止写入，且从不提示。',
-  'Promptsbefore making edits.': '编辑前提示确认。',
-  'Automatic execution,no prompts.': '自动执行，不提示。',
-  Language: '语言',
-  'Display language for the app interface.': '应用界面的显示语言。',
-  'Follow System': '跟随系统',
-  Notes: '备注',
-  "Any additional context you'd like Craft Agent to know...": '任何你希望 Craft Agent 了解的额外信息...',
-  "Any additional context you'd like Craft Agent to know…": '任何你希望 Craft Agent 了解的额外信息...',
-  'Connection icons': '连接图标',
-  'Show provider icons in the session list and model selector': '在会话列表和模型选择器中显示提供商图标',
-  'Rich tool descriptions': '丰富工具描述',
-  'Add action names and intent descriptions to all tool calls. Provides richer activity context in sessions.':
-    '为所有工具调用添加动作名称和意图说明，为会话提供更丰富的活动上下文。',
-  'Sources auto-enabled for new sessions': '新会话自动启用的来源',
-  'No sources configured in this workspace.': '此工作区尚未配置来源。',
-  'No sources configured': '尚未配置来源',
-  'No sources configured.': '尚未配置来源。',
-  'No local folder sources configured.': '尚未配置本地文件夹来源。',
-  'No local folder sources configured': '尚未配置本地文件夹来源',
-  'No MCP sources configured.': '尚未配置 MCP 来源。',
-  'No MCP sources configured': '尚未配置 MCP 来源',
-  'No API sources configured.': '尚未配置 API 来源。',
-  'No API sources configured': '尚未配置 API 来源',
-  'No sessions yet': '还没有会话',
-  'Sessions with your agent appear here. Start one to get going.': '与智能体的会话将显示在这里。开始一个会话吧。',
-  'No archived sessions': '没有已归档会话',
-  'Sessions you archive will appear here. Archive sessions to keep your list tidy while preserving conversations.': '已归档的会话将显示在这里。归档会话可以让列表保持整洁，同时保留对话内容。',
-  'All Sessions': '所有会话',
-  'All Skills': '所有技能',
-  'Archived': '已归档',
-  'Flagged': '已标记',
-  'Status': '状态',
-  'Labels': '标签',
-  'Sources': '来源',
-  'Skills': '技能',
-  'Views': '视图',
-  'Settings': '设置',
-  'APIs': 'API',
-  'MCPs': 'MCP',
-  'Local Folders': '本地文件夹',
-  'New Session': '新会话',
-  'Cancelled': '已取消',
-  'What would you like to work on?': '你想做什么？',
-  'Type # to apply labels to this conversation': '输入 # 为对话添加标签',
+  // Dynamic status labels (from user config, cannot be predetermined)
+  // These come from workspace status configuration
   'Backlog': '待办事项',
   'Todo': '待办',
+  'In Progress': '进行中',
   'Needs Review': '需要审核',
+  'Done': '已完成',
+  'Cancelled': '已取消',
+  
+  // Concatenated text variants (punctuation/formatting differences)
+  // These are variations of text that's in resource files but with different punctuation
+  'Using defaults': '使用默认值',
+  'Using Defaults': '使用默认值',
+  'Name,icon,working directory': '名称、图标、工作目录',
+  'Name, icon, working directory': '名称、图标、工作目录',
+  'Send key,spell check': '发送键、拼写检查',
+  'Send key, spell check': '发送键、拼写检查',
+  'Promptsbefore making edits.': '编辑前提示确认。',
+  'Automatic execution,no prompts.': '自动执行，不提示。',
+  'Read-only exploration.Blockswrites,never prompts.': '只读探索。阻止写入，且从不提示。',
+  
+  // Typo variants that exist in source code
+  'User preferencences': '用户偏好',
 }
 
 const RUNTIME_SUBSTRING_OVERRIDES: Record<string, string> = {
@@ -157,7 +67,7 @@ function normalizeLocale(locale: string): string {
 function normalizeText(text: string): string {
   return text
     .normalize('NFKC')
-    .replace(/’/g, "'")
+    .replace(/'/g, "'")
     .replace(/\s+/g, ' ')
     .trim()
 }
@@ -176,7 +86,7 @@ export function shouldEnableRuntimeI18n(input: RuntimeI18nGuardInput): boolean {
   const route = input.route.trim()
   if (!route) return false
 
-  return input.whitelist.some((prefix) => route === prefix || route.startsWith(`${prefix}/`))
+  return input.whitelist.some((prefix) => route === prefix || route.startsWith(\`\${prefix}/\`))
 }
 
 export function buildLiteralTranslationMap(
@@ -246,7 +156,7 @@ export function createRuntimeI18nPilot(options?: {
   localeProvider?: () => string
 }) {
   const enabledByFlag = options?.flag ?? false
-  const whitelist = options?.whitelist ?? ['settings', 'allSessions', 'flagged', 'archived', 'state', 'label', 'view', 'sources', 'skills']
+  const whitelist = options?.whitelist ?? ['settings']
   const getRoute = options?.routeProvider ?? (() => {
     const params = new URLSearchParams(window.location.search)
     return params.get('route') ?? ''
@@ -285,70 +195,72 @@ export function createRuntimeI18nPilot(options?: {
 
     for (const attr of TRANSLATABLE_ATTRIBUTES) {
       const value = el.getAttribute(attr)
-      if (!value) continue
-      const translated = map[normalizeText(value)]
-      if (!translated) continue
-      el.setAttribute(attr, translated)
+      if (value) {
+        const translated = translateText(value, map)
+        if (translated !== value) {
+          el.setAttribute(attr, translated)
+        }
+      }
     }
 
-    for (const child of Array.from(el.childNodes)) {
-      if (child.nodeType === Node.TEXT_NODE) {
-        translateTextNode(child as Text, map)
-      } else if (child.nodeType === Node.ELEMENT_NODE) {
-        translateElement(child as Element, map)
+    const walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT, null)
+    let node: Node | null
+    while ((node = walker.nextNode())) {
+      translateTextNode(node as Text, map)
+    }
+  }
+
+  const processBatch = (map: TranslationMap) => {
+    const batch = pendingMutations.splice(0)
+    for (const mutation of batch) {
+      if (mutation.type === 'childList') {
+        mutation.addedNodes.forEach((node) => {
+          if (node.nodeType === Node.ELEMENT_NODE) {
+            translateElement(node as Element, map)
+          } else if (node.nodeType === Node.TEXT_NODE) {
+            translateTextNode(node as Text, map)
+          }
+        })
       }
     }
   }
 
-  const start = (resources: { source: unknown; target: unknown }) => {
-    if (!shouldRun()) return false
-    const map = applyRuntimeTranslationOverrides(
-      buildLiteralTranslationMap(resources.source, resources.target),
-    )
-    if (Object.keys(map).length === 0) return false
-
-    translateElement(document.body, map)
-
-    observer?.disconnect()
-    observer = new MutationObserver((mutations) => {
+  return {
+    start(sourceTree: unknown, targetTree: unknown) {
       if (!shouldRun()) return
 
-      pendingMutations.push(...mutations)
-      if (processingQueued) return
-      processingQueued = true
+      const map = applyRuntimeTranslationOverrides(
+        buildLiteralTranslationMap(sourceTree, targetTree)
+      )
 
-      queueMicrotask(() => {
-        processingQueued = false
-        if (!shouldRun()) {
-          pendingMutations.length = 0
-          return
-        }
+      // Initial translation
+      translateElement(document.body, map)
 
-        const batch = pendingMutations.splice(0, pendingMutations.length)
-        for (const mutation of batch) {
-          for (const node of Array.from(mutation.addedNodes)) {
-            if (node.nodeType === Node.TEXT_NODE) {
-              translateTextNode(node as Text, map)
-            } else if (node.nodeType === Node.ELEMENT_NODE) {
-              translateElement(node as Element, map)
-            }
-          }
+      // Setup MutationObserver
+      observer = new MutationObserver((mutations) => {
+        pendingMutations.push(...mutations)
+        if (!processingQueued) {
+          processingQueued = true
+          requestAnimationFrame(() => {
+            processingQueued = false
+            processBatch(map)
+          })
         }
       })
-    })
 
-    observer.observe(document.body, {
-      childList: true,
-      subtree: true,
-    })
+      observer.observe(document.body, {
+        childList: true,
+        subtree: true,
+        attributes: true,
+        attributeFilter: TRANSLATABLE_ATTRIBUTES,
+      })
+    },
 
-    return true
+    stop() {
+      observer?.disconnect()
+      observer = null
+      pendingMutations.length = 0
+      processingQueued = false
+    },
   }
-
-  const stop = () => {
-    observer?.disconnect()
-    observer = null
-  }
-
-  return { start, stop, shouldRun }
 }
