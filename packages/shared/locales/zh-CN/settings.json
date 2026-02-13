@@ -150,6 +150,16 @@
   },
   "shortcuts": {
     "pageTitle": "快捷键",
+    "items": {
+      "toggleTheme": "切换主题",
+      "focusChat": "聚焦聊天",
+      "selectAllSessions": "选择所有会话",
+      "clearSelection": "清除选择",
+      "stopProcessing": "停止处理",
+      "nextSearchMatch": "下一个搜索匹配",
+      "previousSearchMatch": "上一个搜索匹配",
+      "openContextMenu": "打开上下文菜单"
+    },
     "sections": {
       "global": {
         "title": "全局",
@@ -299,6 +309,21 @@
     }
   },
   "workspace": {
+    "defaultSources": {
+      "title": "默认来源",
+      "description": "用于新聊天的设置（当未设置工作区覆盖时）。",
+      "overridesDescription": "按工作区覆盖默认设置。",
+      "usingDefaults": "使用默认值",
+      "useDefault": "使用默认值",
+      "inheritFromApp": "继承应用设置"
+    },
+    "connection": {
+      "customAnthropic": "自定义 Anthropic 兼容连接",
+      "reAuthenticate": "重新认证",
+      "validateConnection": "验证连接",
+      "addConnection": "添加连接",
+      "addConnectionButton": "+ 添加连接"
+    },
     "add": {
       "title": "添加工作区",
       "description": "让你的想法与实现它们的工具相遇。",
@@ -355,6 +380,9 @@
     },
     "model": {
       "title": "模型",
+      "thinking": "思考",
+      "connections": "连接",
+      "modelThinkingConnections": "模型、思考、连接",
       "defaultModel": {
         "label": "默认模型",
         "description": "新聊天使用的 AI 模型",

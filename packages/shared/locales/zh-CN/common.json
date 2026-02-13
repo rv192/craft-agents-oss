@@ -117,6 +117,30 @@
   "labelsMenu": {
     "states": "状态"
   },
+  "shortcuts": {
+    "toggleTheme": "切换主题",
+    "focusChat": "聚焦聊天",
+    "selectAllSessions": "选择所有会话",
+    "clearSelection": "清除选择",
+    "stopProcessing": "停止处理",
+    "nextSearchMatch": "下一个搜索匹配",
+    "previousSearchMatch": "上一个搜索匹配",
+    "openContextMenu": "打开上下文菜单"
+  },
+  "settingsLabels": {
+    "listNavigation": "列表导航",
+    "userPreferences": "用户偏好",
+    "followSystem": "跟随系统",
+    "power": "电源",
+    "keepScreenAwake": "保持屏幕常亮",
+    "quitApplication": "退出应用程序"
+  },
+  "connection": {
+    "icons": "连接图标",
+    "showProviderIcons": "在会话列表和模型选择器中显示提供商图标",
+    "richToolDescriptions": "丰富工具描述",
+    "richToolDescriptionsDetail": "为所有工具调用添加动作名称和意图说明，为会话提供更丰富的活动上下文。"
+  },
   "navigation": {
     "newChat": "新建对话",
     "allChats": "全部对话",
