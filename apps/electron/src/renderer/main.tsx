@@ -112,6 +112,12 @@ void bootstrapRuntimeI18nPilot().catch((error) => {
   console.error('runtime i18n pilot bootstrap failed', error)
 })
 
+if (window.electronAPI?.onAppLanguageChanged) {
+  window.electronAPI.onAppLanguageChanged(() => {
+    window.location.reload()
+  })
+}
+
 /**
  * Minimal fallback UI shown when the entire React tree crashes.
  * Sentry.ErrorBoundary captures the error and sends it to Sentry automatically.
