@@ -124,6 +124,9 @@ const RUNTIME_LITERAL_OVERRIDES: Record<string, string> = {
   'Labels': '标签',
   'Sources': '来源',
   'Skills': '技能',
+  'APIs': 'API',
+  'MCPs': 'MCP',
+  'Local Folders': '本地文件夹',
   'New Session': '新会话',
   'Cancelled': '已取消',
 }
