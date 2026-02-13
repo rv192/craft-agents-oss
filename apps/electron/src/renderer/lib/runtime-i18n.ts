@@ -49,6 +49,8 @@ const RUNTIME_LITERAL_OVERRIDES: Record<string, string> = {
   'Full autonomous execution': '完全自动执行',
   'Explore mode rules': '探索模式规则',
   'Keyboard shortcuts': '键盘快捷键',
+  Quit: '退出',
+  'Quit the application': '退出应用程序',
   'Toggle Theme': '切换主题',
   'Focus Sidebar': '聚焦侧边栏',
   'Focus Session List': '聚焦会话列表',
