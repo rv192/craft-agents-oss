@@ -124,6 +124,8 @@ const RUNTIME_LITERAL_OVERRIDES: Record<string, string> = {
   'Labels': '标签',
   'Sources': '来源',
   'Skills': '技能',
+  'New Session': '新会话',
+  'Cancelled': '已取消',
 }
 
 const RUNTIME_SUBSTRING_OVERRIDES: Record<string, string> = {
