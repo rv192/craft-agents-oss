@@ -318,9 +318,6 @@ export function createRuntimeI18nPilot(options?: {
               translateElement(node as Element, map)
             }
           }
-          if (mutation.type === 'characterData' && mutation.target.nodeType === Node.TEXT_NODE) {
-            translateTextNode(mutation.target as Text, map)
-          }
         }
       })
     })
@@ -328,7 +325,6 @@ export function createRuntimeI18nPilot(options?: {
     observer.observe(document.body, {
       childList: true,
       subtree: true,
-      characterData: true,
     })
 
     return true
