@@ -14,9 +14,26 @@ const COPILOT_INTERCEPTOR_SOURCE = join(ROOT_DIR, "packages/shared/src/copilot-n
 const COPILOT_INTERCEPTOR_OUTPUT = join(DIST_DIR, "copilot-interceptor.cjs");
 const BRIDGE_SERVER_DIR = join(ROOT_DIR, "packages/bridge-mcp-server");
 const BRIDGE_SERVER_OUTPUT = join(BRIDGE_SERVER_DIR, "dist/index.js");
+const BRIDGE_SERVER_BUNDLED = join(ROOT_DIR, "apps/electron/resources/bridge-mcp-server/index.js");
 const SESSION_TOOLS_CORE_DIR = join(ROOT_DIR, "packages/session-tools-core");
 const SESSION_SERVER_DIR = join(ROOT_DIR, "packages/session-mcp-server");
 const SESSION_SERVER_OUTPUT = join(SESSION_SERVER_DIR, "dist/index.js");
+const SESSION_SERVER_BUNDLED = join(ROOT_DIR, "apps/electron/resources/session-mcp-server/index.js");
+
+export type McpBuildMode = "source" | "bundled" | "missing";
+
+export function resolveMcpBuildMode(params: {
+  sourceEntryExists: boolean;
+  bundledEntryExists: boolean;
+}): McpBuildMode {
+  if (params.sourceEntryExists) {
+    return "source";
+  }
+  if (params.bundledEntryExists) {
+    return "bundled";
+  }
+  return "missing";
+}
 
 // Load .env file if it exists
 function loadEnvFile(): void {
@@ -169,6 +186,22 @@ async function buildCopilotInterceptor(): Promise<void> {
 async function buildBridgeServer(): Promise<void> {
   console.log("🌉 Building Bridge MCP Server...");
 
+  const sourceEntry = join(BRIDGE_SERVER_DIR, "src/index.ts");
+  const mode = resolveMcpBuildMode({
+    sourceEntryExists: existsSync(sourceEntry),
+    bundledEntryExists: existsSync(BRIDGE_SERVER_BUNDLED),
+  });
+
+  if (mode === "bundled") {
+    console.log("ℹ️ Bridge MCP source missing, using bundled resource binary");
+    return;
+  }
+
+  if (mode === "missing") {
+    console.error("❌ Bridge MCP source and bundled resource are both missing");
+    process.exit(1);
+  }
+
   // Ensure dist directory exists
   const distDir = join(BRIDGE_SERVER_DIR, "dist");
   if (!existsSync(distDir)) {
@@ -178,7 +211,7 @@ async function buildBridgeServer(): Promise<void> {
   const proc = spawn({
     cmd: [
       "bun", "build",
-      join(BRIDGE_SERVER_DIR, "src/index.ts"),
+      sourceEntry,
       "--outfile", BRIDGE_SERVER_OUTPUT,
       "--target", "node",
       "--format", "cjs",
@@ -208,6 +241,22 @@ async function buildBridgeServer(): Promise<void> {
 async function buildSessionServer(): Promise<void> {
   console.log("📋 Building Session MCP Server...");
 
+  const sourceEntry = join(SESSION_SERVER_DIR, "src/index.ts");
+  const mode = resolveMcpBuildMode({
+    sourceEntryExists: existsSync(sourceEntry),
+    bundledEntryExists: existsSync(SESSION_SERVER_BUNDLED),
+  });
+
+  if (mode === "bundled") {
+    console.log("ℹ️ Session MCP source missing, using bundled resource binary");
+    return;
+  }
+
+  if (mode === "missing") {
+    console.error("❌ Session MCP source and bundled resource are both missing");
+    process.exit(1);
+  }
+
   // Ensure dist directory exists
   const distDir = join(SESSION_SERVER_DIR, "dist");
   if (!existsSync(distDir)) {
@@ -217,7 +266,7 @@ async function buildSessionServer(): Promise<void> {
   const proc = spawn({
     cmd: [
       "bun", "build",
-      join(SESSION_SERVER_DIR, "src/index.ts"),
+      sourceEntry,
       "--outfile", SESSION_SERVER_OUTPUT,
       "--target", "node",
       "--format", "cjs",
@@ -313,4 +362,6 @@ async function main(): Promise<void> {
   process.exit(0);
 }
 
-main();
+if (import.meta.main) {
+  main();
+}
