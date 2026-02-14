@@ -151,7 +151,7 @@ jobs:
           bun test apps/electron/src/renderer/lib/__tests__/runtime-i18n-loader.test.ts apps/electron/src/renderer/lib/__tests__/runtime-i18n.test.ts
           bun run --cwd apps/electron build:renderer
 
-          git push -u origin "$RELEASE_BRANCH"
+          git push -u origin "$RELEASE_BRANCH" --force-with-lease
 
           echo "should_release=true" >> "$GITHUB_OUTPUT"
           echo "upstream_tag=$UPSTREAM_TAG" >> "$GITHUB_OUTPUT"
