@@ -1,0 +1,150 @@
+name: Publish i18n Release
+
+on:
+  workflow_call:
+    inputs:
+      release_branch:
+        required: true
+        type: string
+      upstream_tag:
+        required: true
+        type: string
+      i18n_tag:
+        required: true
+        type: string
+      upstream_release_url:
+        required: true
+        type: string
+      publish:
+        required: false
+        type: boolean
+        default: true
+
+permissions:
+  contents: write
+
+concurrency:
+  group: publish-${{ inputs.i18n_tag }}
+  cancel-in-progress: false
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        target:
+          - name: mac-arm64
+            os: macos-latest
+            package_cmd: npx electron-builder --config electron-builder.yml --project apps/electron --mac dmg --arm64
+            artifact_name: release-assets-mac-arm64
+            artifact_path: |
+              apps/electron/release/Craft-Agent-arm64.dmg
+              apps/electron/release/Craft-Agent-arm64.zip
+              apps/electron/release/Craft-Agent-arm64.yml
+          - name: mac-x64
+            os: macos-latest
+            package_cmd: npx electron-builder --config electron-builder.yml --project apps/electron --mac dmg --x64
+            artifact_name: release-assets-mac-x64
+            artifact_path: |
+              apps/electron/release/Craft-Agent-x64.dmg
+              apps/electron/release/Craft-Agent-x64.zip
+              apps/electron/release/Craft-Agent-x64.yml
+          - name: win-x64
+            os: windows-latest
+            package_cmd: npx electron-builder --config electron-builder.yml --project apps/electron --win nsis --x64
+            artifact_name: release-assets-win-x64
+            artifact_path: |
+              apps/electron/release/Craft-Agent-x64.exe
+              apps/electron/release/Craft-Agent-x64.exe.blockmap
+              apps/electron/release/Craft-Agent-x64.yml
+    runs-on: ${{ matrix.target.os }}
+    steps:
+      - name: Checkout release branch
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.release_branch }}
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+
+      - name: Install dependencies
+        run: bun install
+
+      - name: Build Electron app
+        env:
+          NODE_OPTIONS: --max-old-space-size=6144
+        run: bun run electron:build
+
+      - name: Package platform artifact
+        run: ${{ matrix.target.package_cmd }}
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.target.artifact_name }}
+          path: ${{ matrix.target.artifact_path }}
+
+  release:
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          pattern: release-assets-*
+          merge-multiple: true
+          path: release-assets
+
+      - name: Create release body
+        run: |
+          set -euo pipefail
+          cat > release-body.md <<EOF
+          ## i18n Follow Release
+
+          - Upstream tag: \
+            `${{ inputs.upstream_tag }}`
+          - i18n release tag: \
+            `${{ inputs.i18n_tag }}`
+          - Release branch: \
+            `${{ inputs.release_branch }}`
+          - Upstream release notes: ${{ inputs.upstream_release_url }}
+
+          This release follows upstream and applies i18n overlays (pure resources + runtime injection layer).
+          EOF
+
+      - name: Create or update draft release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          TITLE="${{ inputs.i18n_tag }} (i18n follow release)"
+
+          if gh release view "${{ inputs.i18n_tag }}" --repo "${{ github.repository }}" >/dev/null 2>&1; then
+            gh release edit "${{ inputs.i18n_tag }}" \
+              --repo "${{ github.repository }}" \
+              --title "$TITLE" \
+              --notes-file release-body.md \
+              --draft
+          else
+            gh release create "${{ inputs.i18n_tag }}" \
+              --repo "${{ github.repository }}" \
+              --target "${{ inputs.release_branch }}" \
+              --title "$TITLE" \
+              --notes-file release-body.md \
+              --draft
+          fi
+
+      - name: Upload release assets
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          gh release upload "${{ inputs.i18n_tag }}" release-assets/* --repo "${{ github.repository }}" --clobber
+
+      - name: Publish release
+        if: inputs.publish == true
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          gh release edit "${{ inputs.i18n_tag }}" --repo "${{ github.repository }}" --draft=false
