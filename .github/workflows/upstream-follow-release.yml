@@ -1,0 +1,157 @@
+name: Upstream Follow Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      upstream_tag:
+        description: 'Optional upstream tag to follow (e.g. v0.4.3). Empty = latest upstream release.'
+        required: false
+        type: string
+      upstream_repo:
+        description: 'Upstream repository'
+        required: false
+        type: string
+        default: lukilabs/craft-agents-oss
+      pure_branch:
+        description: 'i18n pure resource branch'
+        required: false
+        type: string
+        default: i18n-pure
+      injection_branch:
+        description: 'i18n runtime mechanism branch'
+        required: false
+        type: string
+        default: feat/runtime-i18n-injection-pilot
+      publish:
+        description: 'Publish release (false=draft only)'
+        required: false
+        type: boolean
+        default: true
+
+permissions:
+  contents: write
+  pull-requests: write
+  issues: write
+
+concurrency:
+  group: upstream-follow-release
+  cancel-in-progress: false
+
+jobs:
+  prepare:
+    runs-on: ubuntu-latest
+    outputs:
+      should_release: ${{ steps.resolve.outputs.should_release }}
+      upstream_tag: ${{ steps.resolve.outputs.upstream_tag }}
+      i18n_tag: ${{ steps.resolve.outputs.i18n_tag }}
+      release_branch: ${{ steps.resolve.outputs.release_branch }}
+      upstream_release_url: ${{ steps.resolve.outputs.upstream_release_url }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+
+      - name: Resolve release target and create integration branch
+        id: resolve
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          INPUT_TAG: ${{ inputs.upstream_tag }}
+          REF_TYPE: ${{ github.ref_type }}
+          REF_NAME: ${{ github.ref_name }}
+          UPSTREAM_REPO: ${{ inputs.upstream_repo || 'lukilabs/craft-agents-oss' }}
+          PURE_BRANCH: ${{ inputs.pure_branch || 'i18n-pure' }}
+          INJECTION_BRANCH: ${{ inputs.injection_branch || 'feat/runtime-i18n-injection-pilot' }}
+        run: |
+          set -euo pipefail
+
+          if [ -n "${INPUT_TAG:-}" ]; then
+            UPSTREAM_TAG="$INPUT_TAG"
+          elif [ "${REF_TYPE:-}" = "tag" ] && [ -n "${REF_NAME:-}" ]; then
+            UPSTREAM_TAG="$REF_NAME"
+          else
+            UPSTREAM_TAG="$(gh release view --repo "$UPSTREAM_REPO" --json tagName -q '.tagName')"
+          fi
+
+          if [ -z "$UPSTREAM_TAG" ]; then
+            echo "Failed to resolve upstream tag" >&2
+            exit 1
+          fi
+
+          RELEASE_URL="$(gh release view "$UPSTREAM_TAG" --repo "$UPSTREAM_REPO" --json url -q '.url')"
+          RELEASE_BRANCH="release/${UPSTREAM_TAG}-i18n"
+
+          git remote add upstream "https://github.com/${UPSTREAM_REPO}.git"
+          git fetch --tags --force upstream
+          git fetch origin
+
+          BASE_VERSION="${UPSTREAM_TAG#v}"
+          PREFIX="v${BASE_VERSION}-i18n."
+
+          EXISTING_INDEX="$(git tag -l "${PREFIX}*" | sed "s/^${PREFIX}//" | sort -n | tail -n 1 || true)"
+          if [ -z "${EXISTING_INDEX}" ]; then
+            NEXT_INDEX=1
+          else
+            NEXT_INDEX=$((EXISTING_INDEX + 1))
+          fi
+
+          I18N_TAG="${PREFIX}${NEXT_INDEX}"
+
+          if gh release view "$I18N_TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            echo "Release $I18N_TAG already exists, skipping."
+            echo "should_release=false" >> "$GITHUB_OUTPUT"
+            echo "upstream_tag=$UPSTREAM_TAG" >> "$GITHUB_OUTPUT"
+            echo "i18n_tag=$I18N_TAG" >> "$GITHUB_OUTPUT"
+            echo "release_branch=$RELEASE_BRANCH" >> "$GITHUB_OUTPUT"
+            echo "upstream_release_url=$RELEASE_URL" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          git checkout -B "$RELEASE_BRANCH" "$UPSTREAM_TAG"
+
+          if ! git merge --no-ff "origin/$PURE_BRANCH" -m "merge(i18n): overlay pure resources from ${PURE_BRANCH}"; then
+            CONFLICTS="$(git diff --name-only --diff-filter=U | tr '\n' ',' | sed 's/,$//')"
+            git merge --abort || true
+            gh issue create --repo "$GITHUB_REPOSITORY" --title "[release-follow] conflict merging pure on ${UPSTREAM_TAG}" --body "Conflicts: ${CONFLICTS}" || true
+            exit 1
+          fi
+
+          if ! git merge --no-ff "origin/$INJECTION_BRANCH" -m "merge(i18n): overlay injection runtime from ${INJECTION_BRANCH}"; then
+            CONFLICTS="$(git diff --name-only --diff-filter=U | tr '\n' ',' | sed 's/,$//')"
+            git merge --abort || true
+            gh issue create --repo "$GITHUB_REPOSITORY" --title "[release-follow] conflict merging injection on ${UPSTREAM_TAG}" --body "Conflicts: ${CONFLICTS}" || true
+            exit 1
+          fi
+
+          bun install
+          bun test apps/electron/src/renderer/lib/__tests__/runtime-i18n-loader.test.ts apps/electron/src/renderer/lib/__tests__/runtime-i18n.test.ts
+          bun run --cwd apps/electron build:renderer
+
+          git push -u origin "$RELEASE_BRANCH"
+
+          echo "should_release=true" >> "$GITHUB_OUTPUT"
+          echo "upstream_tag=$UPSTREAM_TAG" >> "$GITHUB_OUTPUT"
+          echo "i18n_tag=$I18N_TAG" >> "$GITHUB_OUTPUT"
+          echo "release_branch=$RELEASE_BRANCH" >> "$GITHUB_OUTPUT"
+          echo "upstream_release_url=$RELEASE_URL" >> "$GITHUB_OUTPUT"
+
+  publish:
+    if: needs.prepare.outputs.should_release == 'true'
+    needs: prepare
+    uses: ./.github/workflows/publish-i18n-release.yml
+    with:
+      release_branch: ${{ needs.prepare.outputs.release_branch }}
+      upstream_tag: ${{ needs.prepare.outputs.upstream_tag }}
+      i18n_tag: ${{ needs.prepare.outputs.i18n_tag }}
+      upstream_release_url: ${{ needs.prepare.outputs.upstream_release_url }}
+      publish: ${{ inputs.publish || true }}
+    secrets: inherit
