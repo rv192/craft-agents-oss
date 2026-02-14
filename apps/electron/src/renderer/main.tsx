@@ -9,6 +9,7 @@ import { ThemeProvider } from './context/ThemeContext'
 import { windowWorkspaceIdAtom } from './atoms/sessions'
 import { Toaster } from '@/components/ui/sonner'
 import { bootstrapRuntimeI18nPilot } from '@/lib/runtime-i18n-loader'
+import { rendererLog } from './lib/logger'
 import './index.css'
 
 // Known-harmless console messages that should NOT be sent to Sentry.
@@ -66,6 +67,14 @@ sentryInit(
   },
   Sentry.init,
 )
+
+window.addEventListener('error', (event) => {
+  rendererLog.error('Renderer error', event.error ?? event.message)
+})
+
+window.addEventListener('unhandledrejection', (event) => {
+  rendererLog.error('Unhandled rejection', event.reason)
+})
 
 void bootstrapRuntimeI18nPilot(
   () => window.electronAPI.getAppLanguage(),

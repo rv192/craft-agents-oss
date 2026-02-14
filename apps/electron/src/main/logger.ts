@@ -10,6 +10,7 @@ import { app } from 'electron'
  * which runs outside of Electron context.
  */
 export const isDebugMode = !app?.isPackaged || process.argv.includes('--debug')
+const forceFileLogs = process.argv.includes('--log') || process.env.CRAFT_FORCE_FILE_LOGS === '1'
 
 // Configure transports based on debug mode
 if (isDebugMode) {
@@ -38,8 +39,9 @@ if (isDebugMode) {
   }
   log.transports.console.level = 'debug'
 } else {
-  // Disable file and console transports in production
-  log.transports.file.level = false
+  // Disable console logs in production, but keep file error logs by default.
+  // Use --log or CRAFT_FORCE_FILE_LOGS=1 to increase verbosity.
+  log.transports.file.level = forceFileLogs ? 'info' : 'error'
   log.transports.console.level = false
 }
 
