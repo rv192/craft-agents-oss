@@ -24,6 +24,7 @@ import {
   SettingsSection,
   SettingsCard,
   SettingsRow,
+  SettingsSelectRow,
   SettingsToggle,
 } from '@/components/settings'
 import { useUpdateChecker } from '@/hooks/useUpdateChecker'
@@ -38,6 +39,8 @@ export const meta: DetailsPageMeta = {
 // ============================================
 
 export default function AppSettingsPage() {
+  const [appLanguage, setAppLanguage] = useState<'system' | 'en' | 'zh-CN'>('system')
+
   // Notifications state
   const [notificationsEnabled, setNotificationsEnabled] = useState(true)
 
@@ -61,12 +64,14 @@ export default function AppSettingsPage() {
   const loadSettings = useCallback(async () => {
     if (!window.electronAPI) return
     try {
-      const [notificationsOn, keepAwakeOn] = await Promise.all([
+      const [notificationsOn, keepAwakeOn, language] = await Promise.all([
         window.electronAPI.getNotificationsEnabled(),
         window.electronAPI.getKeepAwakeWhileRunning(),
+        window.electronAPI.getAppLanguage(),
       ])
       setNotificationsEnabled(notificationsOn)
       setKeepAwakeEnabled(keepAwakeOn)
+      setAppLanguage(language)
     } catch (error) {
       console.error('Failed to load settings:', error)
     }
@@ -74,7 +79,7 @@ export default function AppSettingsPage() {
 
   useEffect(() => {
     loadSettings()
-  }, [])
+  }, [loadSettings])
 
   const handleNotificationsEnabledChange = useCallback(async (enabled: boolean) => {
     setNotificationsEnabled(enabled)
@@ -85,6 +90,24 @@ export default function AppSettingsPage() {
     setKeepAwakeEnabled(enabled)
     await window.electronAPI.setKeepAwakeWhileRunning(enabled)
   }, [])
+
+  const handleAppLanguageChange = useCallback(async (value: string) => {
+    const language = value as 'system' | 'en' | 'zh-CN'
+    setAppLanguage(language)
+    await window.electronAPI.setAppLanguage(language)
+    window.location.reload()
+  }, [])
+
+  const effectiveUiLanguage: 'en' | 'zh-CN' =
+    appLanguage === 'system'
+      ? (navigator.language.toLowerCase().startsWith('zh') ? 'zh-CN' : 'en')
+      : appLanguage
+
+  const languageSectionLabel = effectiveUiLanguage === 'zh-CN' ? '语言' : 'Language'
+  const languageSectionDescription =
+    effectiveUiLanguage === 'zh-CN'
+      ? '应用界面的显示语言。'
+      : 'Display language for the app interface.'
 
   return (
     <div className="h-full flex flex-col">
@@ -117,6 +140,22 @@ export default function AppSettingsPage() {
                 </SettingsCard>
               </SettingsSection>
 
+              <SettingsSection title={languageSectionLabel}>
+                <SettingsCard>
+                  <SettingsSelectRow
+                    label={languageSectionLabel}
+                    description={languageSectionDescription}
+                    value={appLanguage}
+                    onValueChange={handleAppLanguageChange}
+                    options={[
+                      { value: 'system', label: 'Follow System' },
+                      { value: 'en', label: 'English' },
+                      { value: 'zh-CN', label: '简体中文' },
+                    ]}
+                  />
+                </SettingsCard>
+              </SettingsSection>
+
               {/* About */}
               <SettingsSection title="About">
                 <SettingsCard>
@@ -125,11 +164,14 @@ export default function AppSettingsPage() {
                       <span className="text-muted-foreground">
                         {updateChecker.updateInfo?.currentVersion ?? 'Loading...'}
                       </span>
-                      {updateChecker.isDownloading && updateChecker.updateInfo?.latestVersion && (
-                        <div className="flex items-center gap-2 text-muted-foreground text-sm">
-                          <Spinner className="w-3 h-3" />
-                          <span>Downloading v{updateChecker.updateInfo.latestVersion} ({updateChecker.downloadProgress}%)</span>
-                        </div>
+                      {updateChecker.updateAvailable && updateChecker.updateInfo?.latestVersion && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={updateChecker.installUpdate}
+                        >
+                          Update to {updateChecker.updateInfo.latestVersion}
+                        </Button>
                       )}
                     </div>
                   </SettingsRow>
@@ -150,13 +192,13 @@ export default function AppSettingsPage() {
                       )}
                     </Button>
                   </SettingsRow>
-                  {updateChecker.isReadyToInstall && updateChecker.updateInfo?.latestVersion && (
-                    <SettingsRow label="Update ready">
+                  {updateChecker.isReadyToInstall && (
+                    <SettingsRow label="Install update">
                       <Button
                         size="sm"
                         onClick={updateChecker.installUpdate}
                       >
-                        Restart to Update to v{updateChecker.updateInfo.latestVersion}
+                        Restart to Update
                       </Button>
                     </SettingsRow>
                   )}
