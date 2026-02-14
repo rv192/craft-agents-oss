@@ -1,7 +1,11 @@
 import { describe, expect, it } from 'bun:test'
-import { buildLocaleResources } from '../runtime-i18n-loader'
+import { LOCALE_GLOB_PATTERN, buildLocaleResources } from '../runtime-i18n-loader'
 
 describe('runtime i18n loader', () => {
+  it('uses locale glob pattern that reaches repository-level packages/shared', () => {
+    expect(LOCALE_GLOB_PATTERN).toBe('../../../../../packages/shared/locales/{en,zh-CN}/*.json')
+  })
+
   it('builds namespace resources for a locale from locale modules', () => {
     const localeModules = {
       '/x/locales/en/common.json': { default: { a: 'A' } },
