@@ -70,6 +70,19 @@ jobs:
       - name: Install dependencies
         run: bun install
 
+      - name: Prepare packaged runtime dependencies
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p apps/electron/node_modules/@anthropic-ai
+          cp -R node_modules/@anthropic-ai/claude-agent-sdk apps/electron/node_modules/@anthropic-ai/
+
+          mkdir -p apps/electron/packages/shared/src
+          cp packages/shared/src/network-interceptor.ts apps/electron/packages/shared/src/
+
+          test -f apps/electron/node_modules/@anthropic-ai/claude-agent-sdk/cli.js
+          test -f apps/electron/packages/shared/src/network-interceptor.ts
+
       - name: Build Electron app
         env:
           NODE_OPTIONS: --max-old-space-size=6144
