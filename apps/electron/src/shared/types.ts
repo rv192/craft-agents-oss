@@ -820,9 +820,6 @@ export const IPC_CHANNELS = {
   NOTIFICATION_GET_ENABLED: 'notification:getEnabled',
   NOTIFICATION_SET_ENABLED: 'notification:setEnabled',
 
-  APP_LANGUAGE_GET: 'appLanguage:get',
-  APP_LANGUAGE_SET: 'appLanguage:set',
-
   // Input settings
   INPUT_GET_AUTO_CAPITALISATION: 'input:getAutoCapitalisation',
   INPUT_SET_AUTO_CAPITALISATION: 'input:setAutoCapitalisation',
@@ -1123,9 +1120,6 @@ export interface ElectronAPI {
   showNotification(title: string, body: string, workspaceId: string, sessionId: string): Promise<void>
   getNotificationsEnabled(): Promise<boolean>
   setNotificationsEnabled(enabled: boolean): Promise<void>
-
-  getAppLanguage(): Promise<'system' | 'en' | 'zh-CN'>
-  setAppLanguage(language: 'system' | 'en' | 'zh-CN'): Promise<void>
 
   // Input settings
   getAutoCapitalisation(): Promise<boolean>

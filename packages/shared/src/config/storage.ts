@@ -56,7 +56,6 @@ export interface StoredConfig {
   notificationsEnabled?: boolean;  // Desktop notifications for task completion (default: true)
   // Appearance
   colorTheme?: string;  // ID of selected preset theme (e.g., 'dracula', 'nord'). Default: 'default'
-  appLanguage?: 'system' | 'en' | 'zh-CN';
   // Auto-update
   dismissedUpdateVersion?: string;  // Version that user dismissed (skip notifications for this version)
   // Input settings
@@ -1128,22 +1127,6 @@ export function setColorTheme(themeId: string): void {
   const config = loadStoredConfig();
   if (!config) return;
   config.colorTheme = themeId;
-  saveConfig(config);
-}
-
-export function getAppLanguage(): 'system' | 'en' | 'zh-CN' {
-  const config = loadStoredConfig();
-  if (config?.appLanguage !== undefined) {
-    return config.appLanguage;
-  }
-  const defaults = loadConfigDefaults();
-  return defaults.defaults.appLanguage;
-}
-
-export function setAppLanguage(language: 'system' | 'en' | 'zh-CN'): void {
-  const config = loadStoredConfig();
-  if (!config) return;
-  config.appLanguage = language;
   saveConfig(config);
 }
 

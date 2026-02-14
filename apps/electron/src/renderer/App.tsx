@@ -26,10 +26,6 @@ import { navigate, routes } from './lib/navigate'
 import { stripMarkdown } from './utils/text'
 import { extractWorkspaceSlug } from '@craft-agent/shared/utils/workspace'
 import { initRendererPerf } from './lib/perf'
-import { settlePromiseWithTimeout } from './lib/promise-timeout'
-import log from 'electron-log/renderer'
-
-const startupLog = log.scope('startup')
 import {
   initializeSessionsAtom,
   addSessionAtom,
@@ -230,7 +226,6 @@ export default function App() {
   const [sessionsLoaded, setSessionsLoaded] = useState(false)
   const [splashExiting, setSplashExiting] = useState(false)
   const [splashHidden, setSplashHidden] = useState(false)
-  const startupDebugEnabled = useRef(false)
 
   // Notifications enabled state (from app settings)
   const [notificationsEnabled, setNotificationsEnabled] = useState(true)
@@ -338,51 +333,15 @@ export default function App() {
     }
   }, [])
 
-  useEffect(() => {
-    void (async () => {
-      const isDebug = await window.electronAPI.isDebugMode()
-      startupDebugEnabled.current = isDebug
-      if (isDebug) {
-        startupLog.info(`[bootstrap] startup debug enabled route=${window.location.pathname} search=${window.location.search}`)
-      }
-    })()
-  }, [])
-
-  useEffect(() => {
-    if (!startupDebugEnabled.current) return
-    startupLog.info(`[state] appState=${appState}`)
-  }, [appState])
-
-  useEffect(() => {
-    if (!startupDebugEnabled.current) return
-    startupLog.info(`[state] sessionsLoaded=${sessionsLoaded}`)
-  }, [sessionsLoaded])
-
-  useEffect(() => {
-    if (!startupDebugEnabled.current) return
-    startupLog.info(`[state] splashExiting=${splashExiting}`)
-  }, [splashExiting])
-
-  useEffect(() => {
-    if (!startupDebugEnabled.current) return
-    startupLog.info(`[state] splashHidden=${splashHidden}`)
-  }, [splashHidden])
-
   // Check auth state and get window's workspace ID on mount
   useEffect(() => {
     const initialize = async () => {
       try {
         // Get this window's workspace ID (passed via URL query param from main process)
         const wsId = await window.electronAPI.getWindowWorkspace()
-        if (startupDebugEnabled.current) {
-          startupLog.info(`[bootstrap] getWindowWorkspace resolved workspaceId=${wsId}`)
-        }
         setWindowWorkspaceId(wsId)
 
         const needs = await window.electronAPI.getSetupNeeds()
-        if (startupDebugEnabled.current) {
-          startupLog.info(`[bootstrap] getSetupNeeds resolved isFullyConfigured=${needs.isFullyConfigured}`)
-        }
         setSetupNeeds(needs)
 
         if (needs.isFullyConfigured) {
@@ -393,9 +352,6 @@ export default function App() {
         }
       } catch (error) {
         console.error('Failed to check auth state:', error)
-        if (startupDebugEnabled.current) {
-          startupLog.error('[bootstrap] auth/setup initialization failed', error)
-        }
         // If check fails, show onboarding to be safe
         setAppState('onboarding')
       }
@@ -427,75 +383,36 @@ export default function App() {
 
     window.electronAPI.getWorkspaces().then(setWorkspaces)
     window.electronAPI.getNotificationsEnabled().then(setNotificationsEnabled)
-    void (async () => {
-      try {
-        if (startupDebugEnabled.current) {
-          startupLog.info('[bootstrap] session hydration started')
+    window.electronAPI.getSessions().then((loadedSessions) => {
+      // Initialize per-session atoms and metadata map
+      // NOTE: No sessionsAtom used - sessions are only in per-session atoms
+      initializeSessions(loadedSessions)
+      // Initialize unified sessionOptions from session data
+      const optionsMap = new Map<string, SessionOptions>()
+      for (const s of loadedSessions) {
+        // Only store non-default options to keep the map lean
+        const hasNonDefaultMode = s.permissionMode && s.permissionMode !== 'ask'
+        const hasNonDefaultThinking = s.thinkingLevel && s.thinkingLevel !== 'think'
+        if (hasNonDefaultMode || hasNonDefaultThinking) {
+          optionsMap.set(s.id, {
+            ultrathinkEnabled: false, // ultrathink is single-shot, never persisted
+            permissionMode: s.permissionMode ?? 'ask',
+            thinkingLevel: s.thinkingLevel ?? 'think',
+          })
         }
-        const sessionLoadResult = await settlePromiseWithTimeout(window.electronAPI.getSessions(), 8000)
-
-        if (sessionLoadResult.status === 'timed_out') {
-          console.error('[App] getSessions timed out after 8000ms; continuing startup without session metadata')
-          if (startupDebugEnabled.current) {
-            startupLog.error('[bootstrap] getSessions timed out after 8000ms')
-          }
-          return
-        }
-
-        if (sessionLoadResult.status === 'rejected') {
-          console.error('[App] getSessions failed during startup; continuing without session metadata:', sessionLoadResult.reason)
-          if (startupDebugEnabled.current) {
-            startupLog.error('[bootstrap] getSessions rejected', sessionLoadResult.reason)
-          }
-          return
-        }
-
-        const loadedSessions = sessionLoadResult.value
-        if (startupDebugEnabled.current) {
-          startupLog.info(`[bootstrap] getSessions resolved count=${loadedSessions.length}`)
-        }
-
-        // Initialize per-session atoms and metadata map
-        // NOTE: No sessionsAtom used - sessions are only in per-session atoms
-        initializeSessions(loadedSessions)
-        // Initialize unified sessionOptions from session data
-        const optionsMap = new Map<string, SessionOptions>()
-        for (const s of loadedSessions) {
-          // Only store non-default options to keep the map lean
-          const hasNonDefaultMode = s.permissionMode && s.permissionMode !== 'ask'
-          const hasNonDefaultThinking = s.thinkingLevel && s.thinkingLevel !== 'think'
-          if (hasNonDefaultMode || hasNonDefaultThinking) {
-            optionsMap.set(s.id, {
-              ultrathinkEnabled: false, // ultrathink is single-shot, never persisted
-              permissionMode: s.permissionMode ?? 'ask',
-              thinkingLevel: s.thinkingLevel ?? 'think',
-            })
-          }
-        }
-        setSessionOptions(optionsMap)
-        if (startupDebugEnabled.current) {
-          startupLog.info(`[bootstrap] session options initialized count=${optionsMap.size}`)
-        }
-
-        // If window was opened with a specific session (via "Open in New Window"), select it
-        if (initialSessionId && windowWorkspaceId) {
-          const session = loadedSessions.find(s => s.id === initialSessionId)
-          if (session) {
-            navigate(routes.view.allSessions(session.id))
-          }
-        }
-      } catch (error) {
-        console.error('[App] unexpected startup session hydration error:', error)
-        if (startupDebugEnabled.current) {
-          startupLog.error('[bootstrap] unexpected startup session hydration error', error)
-        }
-      } finally {
-        if (startupDebugEnabled.current) {
-          startupLog.info('[bootstrap] session hydration finalized; marking sessionsLoaded=true')
-        }
-        setSessionsLoaded(true)
       }
-    })()
+      setSessionOptions(optionsMap)
+      // Mark sessions as loaded for splash screen
+      setSessionsLoaded(true)
+
+      // If window was opened with a specific session (via "Open in New Window"), select it
+      if (initialSessionId && windowWorkspaceId) {
+        const session = loadedSessions.find(s => s.id === initialSessionId)
+        if (session) {
+          navigate(routes.view.allSessions(session.id))
+        }
+      }
+    })
     // Load LLM connections with authentication status
     window.electronAPI.listLlmConnectionsWithStatus().then((connections) => {
       setLlmConnections(connections)

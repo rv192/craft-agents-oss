@@ -1,5 +1,7 @@
 {
   "version": "2026-02-07",
+  "name": "默认权限",
+  "description": "探索模式下默认允许的只读 Bash 与 MCP 模式。可编辑此文件来自定义哪些命令可在无需确认时执行。",
 
   "allowedBashPatterns": [
     { "pattern": "^ls\\b", "comment": "列出目录内容" },
@@ -196,10 +198,11 @@
 
     { "pattern": "^dir\\b", "comment": "PowerShell/CMD: 列出目录（Get-ChildItem 别名）" },
     { "pattern": "^gci\\b", "comment": "PowerShell: Get-ChildItem 别名" },
-    { "pattern": "^gc\\b", "comment": "PowerShell: Get-Content 别名" },
-    { "pattern": "^gps\\b", "comment": "PowerShell: Get-Process 别名" },
-    { "pattern": "^gsv\\b", "comment": "PowerShell: Get-Service 别名" },
-    { "pattern": "^gcm\\b", "comment": "PowerShell: Get-Command 别名" }
+    { "pattern": "^gc\b", "comment": "PowerShell: Get-Content 别名" },
+    { "pattern": "^gps\b", "comment": "PowerShell: Get-Process 别名" },
+    { "pattern": "^gsv\b", "comment": "PowerShell: Get-Service 别名" },
+    { "pattern": "^gcm\b", "comment": "PowerShell: Get-Command 别名" },
+    { "pattern": "-h\b$", "comment": "显示命令帮助（短参数）" }
   ],
 
   "allowedMcpPatterns": [
