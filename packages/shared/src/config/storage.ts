@@ -75,6 +75,7 @@ export interface StoredConfig {
 
 const CONFIG_FILE = join(CONFIG_DIR, 'config.json');
 const CONFIG_DEFAULTS_FILE = join(CONFIG_DIR, 'config-defaults.json');
+const APP_LANGUAGE_FILE = join(CONFIG_DIR, 'app-language.json');
 
 // Track if config-defaults have been synced this session (prevents re-sync on hot reload)
 let configDefaultsSynced = false;
@@ -1132,6 +1133,16 @@ export function setColorTheme(themeId: string): void {
 }
 
 export function getAppLanguage(): 'system' | 'en' | 'zh-CN' {
+  if (existsSync(APP_LANGUAGE_FILE)) {
+    try {
+      const stored = readJsonFileSync<{ appLanguage?: string }>(APP_LANGUAGE_FILE);
+      if (stored?.appLanguage === 'system' || stored?.appLanguage === 'en' || stored?.appLanguage === 'zh-CN') {
+        return stored.appLanguage;
+      }
+    } catch {
+      // Fall back to config/defaults if the app language file is corrupt.
+    }
+  }
   const config = loadStoredConfig();
   if (config?.appLanguage !== undefined) {
     return config.appLanguage;
@@ -1145,9 +1156,15 @@ export function getAppLanguage(): 'system' | 'en' | 'zh-CN' {
 }
 
 export function setAppLanguage(language: 'system' | 'en' | 'zh-CN'): void {
+  ensureConfigDir();
+  try {
+    writeFileSync(APP_LANGUAGE_FILE, JSON.stringify({ appLanguage: language }, null, 2), 'utf-8');
+  } catch (error) {
+    console.error('[config] Failed to persist app-language.json:', error);
+  }
+
   let config = loadStoredConfig();
   if (!config) {
-    ensureConfigDir();
     const workspaces: Workspace[] = [];
     const discoveredPaths = discoverWorkspacesInDefaultLocation();
     for (const rootPath of discoveredPaths) {
