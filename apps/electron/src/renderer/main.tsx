@@ -8,6 +8,7 @@ import App from './App'
 import { ThemeProvider } from './context/ThemeContext'
 import { windowWorkspaceIdAtom } from './atoms/sessions'
 import { Toaster } from '@/components/ui/sonner'
+import { bootstrapRuntimeI18nPilot } from '@/lib/runtime-i18n-loader'
 import './index.css'
 
 // Known-harmless console messages that should NOT be sent to Sentry.
@@ -65,6 +66,13 @@ sentryInit(
   },
   Sentry.init,
 )
+
+void bootstrapRuntimeI18nPilot(
+  () => window.electronAPI.getAppLanguage(),
+  import.meta.env.VITE_RUNTIME_I18N_PILOT !== 'false',
+).catch((error) => {
+  console.error('runtime i18n pilot bootstrap failed', error)
+})
 
 /**
  * Minimal fallback UI shown when the entire React tree crashes.

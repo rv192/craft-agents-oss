@@ -2851,8 +2851,17 @@ export function registerIpcHandlers(sessionManager: SessionManager, windowManage
     const { existsSync, readFileSync } = await import('fs')
     const { getAppPermissionsDir } = await import('@craft-agent/shared/agent')
     const { join } = await import('path')
+    const { getAppLanguage } = await import('@craft-agent/shared/config/storage')
 
-    const defaultPath = join(getAppPermissionsDir(), 'default.json')
+    const configuredLanguage = getAppLanguage()
+    const effectiveLocale = configuredLanguage === 'system' ? app.getLocale() : configuredLanguage
+    const isZhLocale = effectiveLocale.toLowerCase().startsWith('zh')
+
+    const permissionsDir = getAppPermissionsDir()
+    const localizedPath = join(permissionsDir, 'default.zh-CN.json')
+    const fallbackPath = join(permissionsDir, 'default.json')
+    const defaultPath = isZhLocale && existsSync(localizedPath) ? localizedPath : fallbackPath
+
     if (!existsSync(defaultPath)) return { config: null, path: defaultPath }
 
     try {
