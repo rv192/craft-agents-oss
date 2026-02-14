@@ -40,7 +40,7 @@ export function shouldEnableRuntimeI18n(input: RuntimeI18nGuardInput): boolean {
   if (!locale.startsWith('zh')) return false
 
   const route = input.route.trim()
-  if (!route) return false
+  if (!route) return true
 
   return input.whitelist.some((prefix) => route === prefix || route.startsWith(`${prefix}/`))
 }

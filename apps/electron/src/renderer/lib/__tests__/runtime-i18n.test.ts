@@ -52,6 +52,17 @@ describe('runtime i18n pilot guards', () => {
 
     expect(enabled).toBe(false)
   })
+
+  it('allows runtime pilot when route is empty in zh locale with feature enabled', () => {
+    const enabled = shouldEnableRuntimeI18n({
+      enabled: true,
+      locale: 'zh-CN',
+      route: '',
+      whitelist: ['/settings', '/allSessions'],
+    })
+
+    expect(enabled).toBe(true)
+  })
 })
 
 describe('runtime i18n translation map', () => {
