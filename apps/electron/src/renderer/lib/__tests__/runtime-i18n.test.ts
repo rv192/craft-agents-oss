@@ -6,7 +6,34 @@ import {
   shouldEnableRuntimeI18n,
   translateText,
 } from '../runtime-i18n'
-import { settlePromiseWithTimeout } from '../promise-timeout'
+
+type SettledResult<T> =
+  | { status: 'fulfilled'; value: T }
+  | { status: 'rejected'; reason: unknown }
+  | { status: 'timeout' }
+
+async function settlePromiseWithTimeout<T>(
+  promise: Promise<T>,
+  timeoutMs: number,
+): Promise<SettledResult<T>> {
+  let timeoutId: ReturnType<typeof setTimeout> | null = null
+
+  const timeoutPromise = new Promise<SettledResult<T>>((resolve) => {
+    timeoutId = setTimeout(() => resolve({ status: 'timeout' }), timeoutMs)
+  })
+
+  const settledPromise = promise
+    .then((value) => ({ status: 'fulfilled', value } as const))
+    .catch((reason) => ({ status: 'rejected', reason } as const))
+
+  const result = await Promise.race([settledPromise, timeoutPromise])
+
+  if (timeoutId) {
+    clearTimeout(timeoutId)
+  }
+
+  return result
+}
 
 describe('runtime i18n pilot guards', () => {
   it('enables only when flag is on, locale is zh-CN, and route is whitelisted', () => {
