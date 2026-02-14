@@ -98,16 +98,8 @@ export default function AppSettingsPage() {
     window.location.reload()
   }, [])
 
-  const effectiveUiLanguage: 'en' | 'zh-CN' =
-    appLanguage === 'system'
-      ? (navigator.language.toLowerCase().startsWith('zh') ? 'zh-CN' : 'en')
-      : appLanguage
-
-  const languageSectionLabel = effectiveUiLanguage === 'zh-CN' ? '语言' : 'Language'
-  const languageSectionDescription =
-    effectiveUiLanguage === 'zh-CN'
-      ? '应用界面的显示语言。'
-      : 'Display language for the app interface.'
+  const languageSectionLabel = 'App Language'
+  const languageSectionDescription = 'Choose the app language.'
 
   return (
     <div className="h-full flex flex-col">
