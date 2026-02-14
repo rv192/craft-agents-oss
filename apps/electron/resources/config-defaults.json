@@ -4,7 +4,6 @@
   "defaults": {
     "notificationsEnabled": true,
     "colorTheme": "default",
-    "appLanguage": "system",
     "autoCapitalisation": true,
     "sendMessageKey": "enter",
     "spellCheck": false,

@@ -1137,12 +1137,35 @@ export function getAppLanguage(): 'system' | 'en' | 'zh-CN' {
     return config.appLanguage;
   }
   const defaults = loadConfigDefaults();
-  return defaults.defaults.appLanguage;
+  const fallback = defaults.defaults.appLanguage;
+  if (fallback === 'system' || fallback === 'en' || fallback === 'zh-CN') {
+    return fallback;
+  }
+  return 'system';
 }
 
 export function setAppLanguage(language: 'system' | 'en' | 'zh-CN'): void {
-  const config = loadStoredConfig();
-  if (!config) return;
+  let config = loadStoredConfig();
+  if (!config) {
+    ensureConfigDir();
+    const workspaces: Workspace[] = [];
+    const discoveredPaths = discoverWorkspacesInDefaultLocation();
+    for (const rootPath of discoveredPaths) {
+      const wsConfig = loadWorkspaceConfig(rootPath);
+      if (!wsConfig) continue;
+      workspaces.push({
+        id: wsConfig.id || generateWorkspaceId(),
+        name: wsConfig.name,
+        rootPath,
+        createdAt: wsConfig.createdAt || Date.now(),
+      });
+    }
+    config = {
+      workspaces,
+      activeWorkspaceId: workspaces[0]?.id || null,
+      activeSessionId: null,
+    };
+  }
   config.appLanguage = language;
   saveConfig(config);
 }

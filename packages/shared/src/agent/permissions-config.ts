@@ -116,6 +116,12 @@ export function ensureDefaultPermissions(): void {
     const installed = safeJsonParse(installedContent) as PermissionsConfigFile;
     const bundled = safeJsonParse(bundledContent) as PermissionsConfigFile;
 
+    if (isEmptyPermissionsConfig(installed) && !isEmptyPermissionsConfig(bundled)) {
+      writeFileSync(destPath, bundledContent, 'utf-8');
+      debug('[Permissions] Repaired empty default.json with bundled config');
+      return;
+    }
+
     const installedVersion = installed.version || '2000-01-01';
     const bundledVersion = bundled.version || '2000-01-01';
 
@@ -129,6 +135,19 @@ export function ensureDefaultPermissions(): void {
   } catch (error) {
     debug('[Permissions] Migration error:', error);
   }
+}
+
+function isEmptyPermissionsConfig(config: PermissionsConfigFile | null | undefined): boolean {
+  if (!config || typeof config !== 'object') return true;
+
+  const hasEntries = (value: unknown): boolean =>
+    Array.isArray(value) && value.length > 0;
+
+  return !hasEntries(config.allowedBashPatterns)
+    && !hasEntries(config.allowedMcpPatterns)
+    && !hasEntries(config.allowedApiEndpoints)
+    && !hasEntries(config.allowedWritePaths)
+    && !hasEntries(config.blockedTools);
 }
 
 /**
