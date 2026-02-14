@@ -8,7 +8,7 @@ import App from './App'
 import { ThemeProvider } from './context/ThemeContext'
 import { windowWorkspaceIdAtom } from './atoms/sessions'
 import { Toaster } from '@/components/ui/sonner'
-import { createRuntimeI18nPilot } from '@/lib/runtime-i18n'
+import { bootstrapRuntimeI18nPilot } from '@/lib/runtime-i18n-loader'
 import './index.css'
 
 // Known-harmless console messages that should NOT be sent to Sentry.
@@ -67,52 +67,12 @@ sentryInit(
   Sentry.init,
 )
 
-async function bootstrapRuntimeI18nPilot() {
-  const pilotEnabled = import.meta.env.VITE_RUNTIME_I18N_PILOT !== 'false'
-  const appLanguage = await window.electronAPI.getAppLanguage()
-  const pilot = createRuntimeI18nPilot({
-    flag: pilotEnabled,
-    whitelist: ['settings', 'allSessions', 'flagged', 'archived', 'state', 'label', 'view', 'sources', 'skills'],
-    localeProvider: () => (appLanguage === 'system' ? navigator.language : appLanguage),
-  })
-
-  const localeModules = import.meta.glob('../../../../packages/shared/locales/{en,zh-CN}/*.json', {
-    eager: true,
-  }) as Record<string, { default: unknown }>
-
-  const namespaceFiles = ['chat', 'common', 'dialogs', 'menu', 'onboarding', 'settings']
-
-  const enResources: Record<string, unknown> = {}
-  const zhResources: Record<string, unknown> = {}
-
-  for (const namespace of namespaceFiles) {
-    const enModule = Object.entries(localeModules).find(([path]) => path.endsWith(`/locales/en/${namespace}.json`))?.[1]
-    const zhModule = Object.entries(localeModules).find(([path]) => path.endsWith(`/locales/zh-CN/${namespace}.json`))?.[1]
-
-    if (enModule?.default) {
-      enResources[namespace] = enModule.default
-    }
-    if (zhModule?.default) {
-      zhResources[namespace] = zhModule.default
-    }
-  }
-
-  if (Object.keys(enResources).length === 0 || Object.keys(zhResources).length === 0) {
-    return
-  }
-
-  pilot.start(enResources, zhResources)
-}
-
-void bootstrapRuntimeI18nPilot().catch((error) => {
+void bootstrapRuntimeI18nPilot(
+  () => window.electronAPI.getAppLanguage(),
+  import.meta.env.VITE_RUNTIME_I18N_PILOT !== 'false',
+).catch((error) => {
   console.error('runtime i18n pilot bootstrap failed', error)
 })
-
-if (window.electronAPI?.onAppLanguageChanged) {
-  window.electronAPI.onAppLanguageChanged(() => {
-    window.location.reload()
-  })
-}
 
 /**
  * Minimal fallback UI shown when the entire React tree crashes.

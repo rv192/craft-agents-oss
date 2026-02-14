@@ -1,5 +1,10 @@
 type TranslationMap = Record<string, string>
 
+export type RuntimeTranslationOverrides = {
+  literal: TranslationMap
+  substring: TranslationMap
+}
+
 type RuntimeI18nGuardInput = {
   enabled: boolean
   locale: string
@@ -9,37 +14,7 @@ type RuntimeI18nGuardInput = {
 
 const TRANSLATABLE_ATTRIBUTES = ['title', 'placeholder', 'aria-label'] as const
 
-/**
- * Runtime literal overrides - ONLY for dynamic or concatenated text
- * 
- * NOTE: Most translations have been migrated to resource files:
- * - packages/shared/locales/zh-CN/settings.json
- * - packages/shared/locales/zh-CN/common.json
- * 
- * This map should only contain:
- * 1. Dynamic text from external configs (e.g., status labels from user config)
- * 2. Concatenated/generated text that can't be keyed
- * 3. Third-party library text
- * 
- * DO NOT add static UI text here - use resource files instead.
- */
-const RUNTIME_LITERAL_OVERRIDES: Record<string, string> = {
-  'What should I modify?': '你希望我改哪里？',
-  'Just tell me what to change': '直接告诉我改什么',
-  'Describe the update': '描述你的修改',
-  "Any additional context you'd like Craft Agent to know...": '任何你希望 Craft Agent 了解的额外信息...',
-}
-
-const RUNTIME_SUBSTRING_OVERRIDES: Record<string, string> = {
-  'Permissions control how much autonomy your agent has. In': '权限决定智能体的自主程度。在',
-  'mode, the agent can only read and research — perfect for understanding a problem before committing to changes. When you\'re ready, switch to':
-    '模式下，智能体只能阅读和研究，非常适合理解问题再开始修改。当你准备好后，切换到',
-  'mode to let the agent implement the plan autonomously.': '模式即可让智能体自动实施计划。',
-  'Read-only exploration.': '只读探索。',
-  'Blocks writes, never prompts.': '阻止写入，且从不提示。',
-  'Prompts before making edits.': '编辑前提示确认。',
-  'Automatic execution, no prompts.': '自动执行，不提示。',
-}
+let latestRuntimeLiteralOverrides: TranslationMap = {}
 
 function normalizeLocale(locale: string): string {
   return locale.replace('_', '-').toLowerCase()
@@ -48,7 +23,7 @@ function normalizeLocale(locale: string): string {
 function normalizeText(text: string): string {
   return text
     .normalize('NFKC')
-    .replace(/'/g, "'")
+    .replace(/’/g, "'")
     .replace(/\s+/g, ' ')
     .trim()
 }
@@ -106,9 +81,60 @@ export function translateText(text: string, map: TranslationMap): string {
   return map[key] ?? text
 }
 
-function applySubstringOverrides(text: string): string {
+function normalizeStringMap(value: unknown): TranslationMap {
+  if (!value || typeof value !== 'object') return {}
+
+  const next: TranslationMap = {}
+  for (const [key, entry] of Object.entries(value as Record<string, unknown>)) {
+    if (typeof key === 'string' && typeof entry === 'string') {
+      next[key] = entry
+    }
+  }
+  return next
+}
+
+function extractRuntimeFallbackMaps(localeTree: unknown): RuntimeTranslationOverrides {
+  if (!localeTree || typeof localeTree !== 'object') {
+    return { literal: {}, substring: {} }
+  }
+
+  const root = localeTree as Record<string, unknown>
+  const common = root.common as Record<string, unknown> | undefined
+  const directLiteral = normalizeStringMap(root.literal)
+  const directSubstring = normalizeStringMap(root.substring)
+  if (Object.keys(directLiteral).length > 0 || Object.keys(directSubstring).length > 0) {
+    return {
+      literal: directLiteral,
+      substring: directSubstring,
+    }
+  }
+
+  const runtimeFallback =
+    (root.runtimeFallback as Record<string, unknown> | undefined)
+    ?? (common?.runtimeFallback as Record<string, unknown> | undefined)
+
+  return {
+    literal: normalizeStringMap(runtimeFallback?.literalMap),
+    substring: normalizeStringMap(runtimeFallback?.substringMap),
+  }
+}
+
+export function buildRuntimeTranslationOverrides(
+  sourceLocaleTree: unknown,
+  targetLocaleTree: unknown,
+): RuntimeTranslationOverrides {
+  const source = extractRuntimeFallbackMaps(sourceLocaleTree)
+  const target = extractRuntimeFallbackMaps(targetLocaleTree)
+
+  return {
+    literal: buildLiteralTranslationMap(source.literal, target.literal),
+    substring: buildLiteralTranslationMap(source.substring, target.substring),
+  }
+}
+
+function applySubstringOverrides(text: string, substringOverrides: TranslationMap): string {
   let next = text
-  for (const [source, target] of Object.entries(RUNTIME_SUBSTRING_OVERRIDES)) {
+  for (const [source, target] of Object.entries(substringOverrides)) {
     if (next.includes(source)) {
       next = next.replaceAll(source, target)
     }
@@ -116,10 +142,13 @@ function applySubstringOverrides(text: string): string {
   return next
 }
 
-export function applyRuntimeTranslationOverrides(map: TranslationMap): TranslationMap {
+export function applyRuntimeTranslationOverrides(
+  map: TranslationMap,
+  overrides: Pick<RuntimeTranslationOverrides, 'literal'>,
+): TranslationMap {
   const next = { ...map }
 
-  for (const [source, target] of Object.entries(RUNTIME_LITERAL_OVERRIDES)) {
+  for (const [source, target] of Object.entries(overrides.literal)) {
     next[normalizeText(source)] = target
   }
 
@@ -127,7 +156,7 @@ export function applyRuntimeTranslationOverrides(map: TranslationMap): Translati
 }
 
 export function getRuntimeLiteralOverrides(): Record<string, string> {
-  return { ...RUNTIME_LITERAL_OVERRIDES }
+  return { ...latestRuntimeLiteralOverrides }
 }
 
 export function createRuntimeI18nPilot(options?: {
@@ -137,7 +166,7 @@ export function createRuntimeI18nPilot(options?: {
   localeProvider?: () => string
 }) {
   const enabledByFlag = options?.flag ?? false
-  const whitelist = options?.whitelist ?? ['settings']
+  const whitelist = options?.whitelist ?? ['settings', 'allSessions']
   const getRoute = options?.routeProvider ?? (() => {
     const params = new URLSearchParams(window.location.search)
     return params.get('route') ?? ''
@@ -155,7 +184,7 @@ export function createRuntimeI18nPilot(options?: {
     whitelist,
   })
 
-  const translateTextNode = (node: Text, map: TranslationMap) => {
+  const translateTextNode = (node: Text, map: TranslationMap, substringOverrides: TranslationMap) => {
     const original = node.textContent ?? ''
     const trimmed = normalizeText(original)
     if (!trimmed) return
@@ -165,13 +194,13 @@ export function createRuntimeI18nPilot(options?: {
       return
     }
 
-    const patched = applySubstringOverrides(original)
+    const patched = applySubstringOverrides(original, substringOverrides)
     if (patched !== original) {
       node.textContent = patched
     }
   }
 
-  const translateElement = (el: Element, map: TranslationMap) => {
+  const translateElement = (el: Element, map: TranslationMap, substringOverrides: TranslationMap) => {
     for (const attr of TRANSLATABLE_ATTRIBUTES) {
       const value = el.getAttribute(attr)
       if (value) {
@@ -187,37 +216,37 @@ export function createRuntimeI18nPilot(options?: {
     const walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT, null)
     let node: Node | null = walker.nextNode()
     while (node) {
-      translateTextNode(node as Text, map)
+      translateTextNode(node as Text, map, substringOverrides)
       node = walker.nextNode()
     }
   }
 
-  const processBatch = (map: TranslationMap) => {
+  const processBatch = (map: TranslationMap, substringOverrides: TranslationMap) => {
     const batch = pendingMutations.splice(0)
     for (const mutation of batch) {
       if (mutation.type === 'childList') {
         mutation.addedNodes.forEach((node) => {
           if (node.nodeType === Node.ELEMENT_NODE) {
-            translateElement(node as Element, map)
+            translateElement(node as Element, map, substringOverrides)
           } else if (node.nodeType === Node.TEXT_NODE) {
-            translateTextNode(node as Text, map)
+            translateTextNode(node as Text, map, substringOverrides)
           } else if (node.nodeType === Node.DOCUMENT_FRAGMENT_NODE) {
             node.childNodes.forEach((child) => {
               if (child.nodeType === Node.ELEMENT_NODE) {
-                translateElement(child as Element, map)
+                translateElement(child as Element, map, substringOverrides)
               } else if (child.nodeType === Node.TEXT_NODE) {
-                translateTextNode(child as Text, map)
+                translateTextNode(child as Text, map, substringOverrides)
               }
             })
           }
         })
       } else if (mutation.type === 'attributes') {
         if (mutation.target.nodeType === Node.ELEMENT_NODE) {
-          translateElement(mutation.target as Element, map)
+          translateElement(mutation.target as Element, map, substringOverrides)
         }
       } else if (mutation.type === 'characterData') {
         if (mutation.target.nodeType === Node.TEXT_NODE) {
-          translateTextNode(mutation.target as Text, map)
+          translateTextNode(mutation.target as Text, map, substringOverrides)
         }
       }
     }
@@ -226,14 +255,20 @@ export function createRuntimeI18nPilot(options?: {
   const attributeFilter = [...TRANSLATABLE_ATTRIBUTES]
 
   return {
+    shouldRun,
+
     start(sourceTree: unknown, targetTree: unknown) {
       if (!shouldRun()) return
 
+      const runtimeOverrides = buildRuntimeTranslationOverrides(sourceTree, targetTree)
+      latestRuntimeLiteralOverrides = { ...runtimeOverrides.literal }
+
       const map = applyRuntimeTranslationOverrides(
-        buildLiteralTranslationMap(sourceTree, targetTree)
+        buildLiteralTranslationMap(sourceTree, targetTree),
+        runtimeOverrides,
       )
 
-      translateElement(document.body, map)
+      translateElement(document.body, map, runtimeOverrides.substring)
 
       observer = new MutationObserver((mutations) => {
         pendingMutations.push(...mutations)
@@ -241,7 +276,7 @@ export function createRuntimeI18nPilot(options?: {
           processingQueued = true
           requestAnimationFrame(() => {
             processingQueued = false
-            processBatch(map)
+            processBatch(map, runtimeOverrides.substring)
           })
         }
       })
