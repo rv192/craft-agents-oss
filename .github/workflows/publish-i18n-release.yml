@@ -79,9 +79,11 @@ jobs:
 
           mkdir -p apps/electron/packages/shared/src
           cp packages/shared/src/network-interceptor.ts apps/electron/packages/shared/src/
+          cp packages/shared/src/interceptor-common.ts apps/electron/packages/shared/src/
 
           test -f apps/electron/node_modules/@anthropic-ai/claude-agent-sdk/cli.js
           test -f apps/electron/packages/shared/src/network-interceptor.ts
+          test -f apps/electron/packages/shared/src/interceptor-common.ts
 
       - name: Build Electron app
         env:
