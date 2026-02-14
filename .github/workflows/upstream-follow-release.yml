@@ -126,10 +126,15 @@ jobs:
           fi
 
           if ! git merge --no-ff -X theirs "origin/$INJECTION_BRANCH" -m "merge(i18n): overlay injection runtime from ${INJECTION_BRANCH}"; then
-            CONFLICTS="$(git diff --name-only --diff-filter=U | tr '\n' ',' | sed 's/,$//')"
-            git merge --abort || true
-            gh issue create --repo "$GITHUB_REPOSITORY" --title "[release-follow] conflict merging injection on ${UPSTREAM_TAG}" --body "Conflicts: ${CONFLICTS}" || true
-            exit 1
+            CONFLICT_FILES="$(git diff --name-only --diff-filter=U)"
+            if [ -n "${CONFLICT_FILES}" ]; then
+              git checkout --theirs -- ${CONFLICT_FILES}
+              git add ${CONFLICT_FILES}
+              git commit --no-edit
+            else
+              git merge --abort || true
+              exit 1
+            fi
           fi
 
           bun install
