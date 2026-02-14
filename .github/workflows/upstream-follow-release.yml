@@ -137,6 +137,16 @@ jobs:
             fi
           fi
 
+          # Force-apply critical injection UI entrypoints to avoid silent drop
+          FORCE_OVERLAY_PATHS=(
+            "apps/electron/src/renderer/pages/settings/AppSettingsPage.tsx"
+          )
+          git checkout "origin/$INJECTION_BRANCH" -- "${FORCE_OVERLAY_PATHS[@]}"
+          git add "${FORCE_OVERLAY_PATHS[@]}"
+          if ! git diff --cached --quiet; then
+            git commit -m "chore(i18n): force injection UI overlay"
+          fi
+
           bun install
           bun test apps/electron/src/renderer/lib/__tests__/runtime-i18n-loader.test.ts apps/electron/src/renderer/lib/__tests__/runtime-i18n.test.ts
           bun run --cwd apps/electron build:renderer
