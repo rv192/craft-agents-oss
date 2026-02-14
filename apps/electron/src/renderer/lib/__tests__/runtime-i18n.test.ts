@@ -8,9 +8,9 @@ import {
 } from '../runtime-i18n'
 
 type SettledResult<T> =
-  | { status: 'fulfilled'; value: T }
+  | { status: 'resolved'; value: T }
   | { status: 'rejected'; reason: unknown }
-  | { status: 'timeout' }
+  | { status: 'timed_out' }
 
 async function settlePromiseWithTimeout<T>(
   promise: Promise<T>,
@@ -19,11 +19,11 @@ async function settlePromiseWithTimeout<T>(
   let timeoutId: ReturnType<typeof setTimeout> | null = null
 
   const timeoutPromise = new Promise<SettledResult<T>>((resolve) => {
-    timeoutId = setTimeout(() => resolve({ status: 'timeout' }), timeoutMs)
+    timeoutId = setTimeout(() => resolve({ status: 'timed_out' }), timeoutMs)
   })
 
   const settledPromise = promise
-    .then((value) => ({ status: 'fulfilled', value } as const))
+    .then((value) => ({ status: 'resolved', value } as const))
     .catch((reason) => ({ status: 'rejected', reason } as const))
 
   const result = await Promise.race([settledPromise, timeoutPromise])
