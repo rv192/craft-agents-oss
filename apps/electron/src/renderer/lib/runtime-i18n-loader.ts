@@ -1,7 +1,10 @@
 import { createRuntimeI18nPilot } from './runtime-i18n'
 
 export type LocaleModuleMap = Record<string, { default: unknown }>
-export const LOCALE_GLOB_PATTERN = '../../../../../packages/shared/locales/{en,zh-CN}/*.json'
+
+export function getLocaleGlobPatternForTest(): string {
+  return '../../../../../packages/shared/locales/{en,zh-CN}/*.json'
+}
 
 export function buildLocaleResources(
   localeModules: LocaleModuleMap,
@@ -31,7 +34,7 @@ export async function bootstrapRuntimeI18nPilot(
     localeProvider: () => (appLanguage === 'system' ? navigator.language : appLanguage),
   })
 
-  const localeModules = import.meta.glob(LOCALE_GLOB_PATTERN, {
+  const localeModules = import.meta.glob('../../../../../packages/shared/locales/{en,zh-CN}/*.json', {
     eager: true,
   }) as LocaleModuleMap
 

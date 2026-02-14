@@ -201,22 +201,29 @@ export function createRuntimeI18nPilot(options?: {
   }
 
   const translateElement = (el: Element, map: TranslationMap, substringOverrides: TranslationMap) => {
-    for (const attr of TRANSLATABLE_ATTRIBUTES) {
-      const value = el.getAttribute(attr)
-      if (value) {
-        const translated = translateText(value, map)
-        if (translated !== value) {
-          el.setAttribute(attr, translated)
+    const translateElementAttributes = (target: Element) => {
+      for (const attr of TRANSLATABLE_ATTRIBUTES) {
+        const value = target.getAttribute(attr)
+        if (value) {
+          const translated = translateText(value, map)
+          if (translated !== value) {
+            target.setAttribute(attr, translated)
+          }
         }
       }
     }
 
+    translateElementAttributes(el)
     if (shouldSkipElement(el)) return
 
-    const walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT, null)
+    const walker = document.createTreeWalker(el, NodeFilter.SHOW_ELEMENT | NodeFilter.SHOW_TEXT, null)
     let node: Node | null = walker.nextNode()
     while (node) {
-      translateTextNode(node as Text, map, substringOverrides)
+      if (node.nodeType === Node.ELEMENT_NODE) {
+        translateElementAttributes(node as Element)
+      } else if (node.nodeType === Node.TEXT_NODE) {
+        translateTextNode(node as Text, map, substringOverrides)
+      }
       node = walker.nextNode()
     }
   }
