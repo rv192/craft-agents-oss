@@ -125,7 +125,7 @@ jobs:
             exit 1
           fi
 
-          if ! git merge --no-ff "origin/$INJECTION_BRANCH" -m "merge(i18n): overlay injection runtime from ${INJECTION_BRANCH}"; then
+          if ! git merge --no-ff -X theirs "origin/$INJECTION_BRANCH" -m "merge(i18n): overlay injection runtime from ${INJECTION_BRANCH}"; then
             CONFLICTS="$(git diff --name-only --diff-filter=U | tr '\n' ',' | sed 's/,$//')"
             git merge --abort || true
             gh issue create --repo "$GITHUB_REPOSITORY" --title "[release-follow] conflict merging injection on ${UPSTREAM_TAG}" --body "Conflicts: ${CONFLICTS}" || true
