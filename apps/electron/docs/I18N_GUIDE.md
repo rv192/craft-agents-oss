@@ -64,6 +64,61 @@
 
 ---
 
+## POC 标准作业（强制执行）
+
+> 本节为 i18n 落地的**标准作业流程**。后续所有 i18n 变更必须遵循。
+
+### 0) 目标
+- 资源与机制彻底解耦：
+  - `i18n-pure` 只承载翻译资产
+  - `feat/runtime-i18n-injection-pilot` 只承载 runtime 机制
+  - `integration/i18n-pilot-check` 只承载验收合流
+
+### 1) 分支作业顺序（固定）
+1. **先改 pure**（`i18n-pure`）
+   - 修改 `packages/shared/locales/{en,zh-CN}/*.json`
+   - 包含 `runtimeFallback.literalMap/substringMap` 的键值补齐
+2. **再改 injection**（`feat/runtime-i18n-injection-pilot`）
+   - 仅修改 runtime 机制代码（如 `runtime-i18n.ts`、loader、observer、normalize）
+   - 不承载翻译资产编辑
+3. **最后合流 integration**（`integration/i18n-pilot-check`）
+   - 先 merge `i18n-pure`，再 merge `feat/runtime-i18n-injection-pilot`
+   - 仅做冲突解算与验收，不做临时功能改造
+
+### 2) 变更归属判定（必须遵守）
+- **文本值变化**（翻译新增/修正）→ `i18n-pure`
+- **匹配机制变化**（DOM 扫描、属性翻译、路由守卫、加载路径）→ `injection`
+- **验收分支发现问题**：
+  - 资源问题回流 `pure`
+  - 机制问题回流 `injection`
+  - 禁止在 `integration` 长留补丁
+
+### 3) 验收门禁（全部通过才算完成）
+1. **分支对齐检查**
+   - `integration` 的 locale 资产必须与 `i18n-pure` 对齐
+2. **关键字符串覆盖检查**（示例）
+   - `Search commands...`
+   - `Filter statuses...`
+   - `Press ⌘/Ctrl + B to toggle the sidebar`
+   - `Press ⌘/Ctrl + . for focus mode`
+3. **自动化验证**
+   - `bun test apps/electron/src/renderer/lib/__tests__/runtime-i18n-loader.test.ts apps/electron/src/renderer/lib/__tests__/runtime-i18n.test.ts`
+   - `bun run --cwd apps/electron build:renderer`
+4. **人工验收点位**
+   - 权限模式菜单顶部搜索框 placeholder
+   - Todo 状态菜单顶部过滤框 placeholder
+
+### 4) 事故复盘经验（必须记住）
+- 仅补 locale 不一定生效：若 runtime 只翻译新增节点本身、未递归翻译后代元素属性，会漏掉 popover/cmdk 中的嵌套 `input placeholder`。
+- 因此，遇到“资源已存在但界面仍英文”，应优先排查 runtime 机制是否覆盖到**后代元素属性**。
+
+### 5) 禁止事项
+- ❌ 在 `integration` 直接做长期修复
+- ❌ 将静态 UI 文案持续堆到 runtime 代码里
+- ❌ 跳过 pure/injection 分责，直接在单分支混改
+
+---
+
 ## 如何添加翻译（关键决策树）
 
 ```
