@@ -1130,6 +1130,45 @@ export function setColorTheme(themeId: string): void {
   saveConfig(config);
 }
 
+export function getAppLanguage(): 'system' | 'en' | 'zh-CN' {
+  const config = loadStoredConfig();
+  if (config?.appLanguage !== undefined) {
+    return config.appLanguage;
+  }
+  const defaults = loadConfigDefaults();
+  const fallback = defaults.defaults.appLanguage;
+  if (fallback === 'system' || fallback === 'en' || fallback === 'zh-CN') {
+    return fallback;
+  }
+  return 'system';
+}
+
+export function setAppLanguage(language: 'system' | 'en' | 'zh-CN'): void {
+  let config = loadStoredConfig();
+  if (!config) {
+    ensureConfigDir();
+    const workspaces: Workspace[] = [];
+    const discoveredPaths = discoverWorkspacesInDefaultLocation();
+    for (const rootPath of discoveredPaths) {
+      const wsConfig = loadWorkspaceConfig(rootPath);
+      if (!wsConfig) continue;
+      workspaces.push({
+        id: wsConfig.id || generateWorkspaceId(),
+        name: wsConfig.name,
+        rootPath,
+        createdAt: wsConfig.createdAt || Date.now(),
+      });
+    }
+    config = {
+      workspaces,
+      activeWorkspaceId: workspaces[0]?.id || null,
+      activeSessionId: null,
+    };
+  }
+  config.appLanguage = language;
+  saveConfig(config);
+}
+
 // ============================================
 // Auto-Update Dismissed Version
 // ============================================
