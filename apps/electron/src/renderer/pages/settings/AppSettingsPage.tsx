@@ -86,6 +86,16 @@ export default function AppSettingsPage() {
     await window.electronAPI.setKeepAwakeWhileRunning(enabled)
   }, [])
 
+  const handleAppLanguageChange = useCallback(async (value: string) => {
+    const language = value as 'system' | 'en' | 'zh-CN'
+    setAppLanguage(language)
+    await window.electronAPI.setAppLanguage(language)
+    window.location.reload()
+  }, [])
+
+  const languageSectionLabel = 'App Language'
+  const languageSectionDescription = 'Choose the app language.'
+
   return (
     <div className="h-full flex flex-col">
       <PanelHeader title="App" actions={<HeaderMenu route={routes.view.settings('app')} helpFeature="app-settings" />} />

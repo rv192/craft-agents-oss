@@ -9,6 +9,7 @@ import { SessionManager } from './sessions'
 import { ipcLog, windowLog, searchLog } from './logger'
 import { WindowManager } from './window-manager'
 import { registerOnboardingHandlers } from './onboarding'
+import { getAppBasePath } from './app-paths'
 import { IPC_CHANNELS, type FileAttachment, type StoredAttachment, type SendMessageOptions, type LlmConnectionSetup } from '../shared/types'
 import { readFileAttachment, perf, validateImageForClaudeAPI, IMAGE_LIMITS } from '@craft-agent/shared/utils'
 import { safeJsonParse } from '@craft-agent/shared/utils/files'
@@ -130,17 +131,14 @@ function createBuiltInConnection(slug: string, baseUrl?: string | null): LlmConn
 async function fetchAndStoreCopilotModels(slug: string, accessToken: string): Promise<void> {
   const { CopilotClient } = await import('@github/copilot-sdk')
 
-  // Resolve @github/copilot CLI path — import.meta.resolve() breaks in esbuild bundles.
-  // Packaged: vendor/copilot/{platform}-{arch}/ (copied by build script, verified in CI).
-  // Dev: native binary from node_modules/@github/copilot-{platform}-{arch}/.
-  const basePath = app.isPackaged ? app.getAppPath() : process.cwd()
-  const platform = process.platform === 'win32' ? 'win32' : process.platform === 'linux' ? 'linux' : 'darwin'
-  const arch = process.arch === 'arm64' ? 'arm64' : 'x64'
-  const binaryName = platform === 'win32' ? 'copilot.exe' : 'copilot'
-
-  const copilotCliPath = app.isPackaged
-    ? join(basePath, 'vendor', 'copilot', `${platform}-${arch}`, binaryName)
-    : join(basePath, 'node_modules', '@github', `copilot-${platform}-${arch}`, binaryName)
+  // Resolve @github/copilot CLI path — import.meta.resolve() breaks in esbuild bundles
+  const copilotRelativePath = join('node_modules', '@github', 'copilot', 'index.js')
+  const basePath = app.isPackaged ? getAppBasePath() : process.cwd()
+  let copilotCliPath = join(basePath, copilotRelativePath)
+  if (!existsSync(copilotCliPath)) {
+    const monorepoRoot = join(basePath, '..', '..')
+    copilotCliPath = join(monorepoRoot, copilotRelativePath)
+  }
 
   const debugLines: string[] = []
   const debugLog = (msg: string) => {
@@ -2866,8 +2864,17 @@ export function registerIpcHandlers(sessionManager: SessionManager, windowManage
     const { existsSync, readFileSync } = await import('fs')
     const { getAppPermissionsDir } = await import('@craft-agent/shared/agent')
     const { join } = await import('path')
+    const { getAppLanguage } = await import('@craft-agent/shared/config/storage')
 
-    const defaultPath = join(getAppPermissionsDir(), 'default.json')
+    const configuredLanguage = getAppLanguage()
+    const effectiveLocale = configuredLanguage === 'system' ? app.getLocale() : configuredLanguage
+    const isZhLocale = effectiveLocale.toLowerCase().startsWith('zh')
+
+    const permissionsDir = getAppPermissionsDir()
+    const localizedPath = join(permissionsDir, 'default.zh-CN.json')
+    const fallbackPath = join(permissionsDir, 'default.json')
+    const defaultPath = isZhLocale && existsSync(localizedPath) ? localizedPath : fallbackPath
+
     if (!existsSync(defaultPath)) return { config: null, path: defaultPath }
 
     try {
@@ -3497,6 +3504,17 @@ export function registerIpcHandlers(sessionManager: SessionManager, windowManage
       const { showNotification } = await import('./notifications')
       showNotification('Notifications enabled', 'You will be notified when tasks complete.', '', '')
     }
+  })
+
+  // App language (UI locale)
+  ipcMain.handle(IPC_CHANNELS.APP_LANGUAGE_GET, async () => {
+    const { getAppLanguage } = await import('@craft-agent/shared/config/storage')
+    return getAppLanguage()
+  })
+
+  ipcMain.handle(IPC_CHANNELS.APP_LANGUAGE_SET, async (_event, language: 'system' | 'en' | 'zh-CN') => {
+    const { setAppLanguage } = await import('@craft-agent/shared/config/storage')
+    setAppLanguage(language)
   })
 
   // Get auto-capitalisation setting

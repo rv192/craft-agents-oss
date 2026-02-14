@@ -11,6 +11,7 @@ import { platform, arch } from 'os';
 import { app } from 'electron';
 import { existsSync } from 'fs';
 import { ipcLog, searchLog } from './logger';
+import { getAppBasePath } from './app-paths';
 
 // Track current search process to cancel on new search
 let currentSearchProcess: ChildProcess | null = null;
@@ -80,7 +81,7 @@ function getRipgrepPath(): string {
 
   // In packaged app, use bundled SDK
   if (app.isPackaged) {
-    const appPath = app.getAppPath();
+    const appPath = getAppBasePath();
     return join(appPath, 'node_modules', '@anthropic-ai', 'claude-agent-sdk', 'vendor', 'ripgrep', platformFolder, binaryName);
   }
 
