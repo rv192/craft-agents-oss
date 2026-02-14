@@ -271,6 +271,11 @@ const api: ElectronAPI = {
       ipcRenderer.removeListener(IPC_CHANNELS.DEFAULT_PERMISSIONS_CHANGED, handler)
     }
   },
+
+  getAppLanguage: () =>
+    ipcRenderer.invoke(IPC_CHANNELS.APP_LANGUAGE_GET) as Promise<'system' | 'en' | 'zh-CN'>,
+  setAppLanguage: (language: 'system' | 'en' | 'zh-CN') =>
+    ipcRenderer.invoke(IPC_CHANNELS.APP_LANGUAGE_SET, language),
   getMcpTools: (workspaceId: string, sourceSlug: string) =>
     ipcRenderer.invoke(IPC_CHANNELS.SOURCES_GET_MCP_TOOLS, workspaceId, sourceSlug),
 

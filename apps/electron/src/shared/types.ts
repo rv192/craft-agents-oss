@@ -752,6 +752,9 @@ export const IPC_CHANNELS = {
   DEFAULT_PERMISSIONS_GET: 'permissions:getDefaults',
   // Broadcast when default permissions change (file watcher)
   DEFAULT_PERMISSIONS_CHANGED: 'permissions:defaultsChanged',
+  // App language (UI locale)
+  APP_LANGUAGE_GET: 'app:language:get',
+  APP_LANGUAGE_SET: 'app:language:set',
   // MCP tools listing
   SOURCES_GET_MCP_TOOLS: 'sources:getMcpTools',
 
@@ -1056,6 +1059,8 @@ export interface ElectronAPI {
   getSourcePermissionsConfig(workspaceId: string, sourceSlug: string): Promise<import('@craft-agent/shared/agent').PermissionsConfigFile | null>
   getWorkspacePermissionsConfig(workspaceId: string): Promise<import('@craft-agent/shared/agent').PermissionsConfigFile | null>
   getDefaultPermissionsConfig(): Promise<{ config: import('@craft-agent/shared/agent').PermissionsConfigFile | null; path: string }>
+  getAppLanguage(): Promise<'system' | 'en' | 'zh-CN'>
+  setAppLanguage(language: 'system' | 'en' | 'zh-CN'): Promise<void>
   getMcpTools(workspaceId: string, sourceSlug: string): Promise<McpToolsResult>
 
   // Session content search (full-text search via ripgrep)

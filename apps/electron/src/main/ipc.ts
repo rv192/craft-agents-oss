@@ -3493,6 +3493,7 @@ export function registerIpcHandlers(sessionManager: SessionManager, windowManage
     }
   })
 
+  // App language (UI locale)
   ipcMain.handle(IPC_CHANNELS.APP_LANGUAGE_GET, async () => {
     const { getAppLanguage } = await import('@craft-agent/shared/config/storage')
     return getAppLanguage()
