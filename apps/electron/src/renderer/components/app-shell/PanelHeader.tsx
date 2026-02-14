@@ -113,6 +113,7 @@ export function PanelHeader({
             <DropdownMenu open={dropdownOpen} onOpenChange={setDropdownOpen}>
               {/* Wrapper button for the whole clickable area */}
               <button
+                type="button"
                 onClick={() => setDropdownOpen(true)}
                 className={cn(
                   "flex items-center gap-1 px-2 py-1 rounded-md titlebar-no-drag",
