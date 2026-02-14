@@ -9,6 +9,7 @@ import { SessionManager } from './sessions'
 import { ipcLog, windowLog, searchLog } from './logger'
 import { WindowManager } from './window-manager'
 import { registerOnboardingHandlers } from './onboarding'
+import { getAppBasePath } from './app-paths'
 import { IPC_CHANNELS, type FileAttachment, type StoredAttachment, type SendMessageOptions, type LlmConnectionSetup } from '../shared/types'
 import { readFileAttachment, perf, validateImageForClaudeAPI, IMAGE_LIMITS } from '@craft-agent/shared/utils'
 import { safeJsonParse } from '@craft-agent/shared/utils/files'
@@ -132,7 +133,7 @@ async function fetchAndStoreCopilotModels(slug: string, accessToken: string): Pr
 
   // Resolve @github/copilot CLI path — import.meta.resolve() breaks in esbuild bundles
   const copilotRelativePath = join('node_modules', '@github', 'copilot', 'index.js')
-  const basePath = app.isPackaged ? app.getAppPath() : process.cwd()
+  const basePath = app.isPackaged ? getAppBasePath() : process.cwd()
   let copilotCliPath = join(basePath, copilotRelativePath)
   if (!existsSync(copilotCliPath)) {
     const monorepoRoot = join(basePath, '..', '..')

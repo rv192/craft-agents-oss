@@ -86,6 +86,7 @@ import { extractLabelId } from '@craft-agent/shared/labels'
 
 // Import and re-export (extracted to avoid Electron dependency in tests)
 import { sanitizeForTitle } from './title-sanitizer'
+import { getAppBasePath } from './app-paths'
 export { sanitizeForTitle }
 
 /**
@@ -102,7 +103,7 @@ function getBundledBunPath(): string | undefined {
     return undefined // Use system bun in development
   }
 
-  const basePath = app.getAppPath()
+  const basePath = getAppBasePath()
   const bunBinary = process.platform === 'win32' ? 'bun.exe' : 'bun'
   // On Windows, bun.exe is in extraResources (process.resourcesPath) to avoid EBUSY errors.
   // On macOS/Linux, bun is in the app files (basePath). See electron-builder.yml for details.
@@ -316,7 +317,7 @@ async function setupCodexSessionConfig(
   // - Packaged: resources/bridge-mcp-server/index.js (copied during build)
   // - Dev: packages/bridge-mcp-server/dist/index.js (built by electron:build:main)
   const bridgeServerPath = app.isPackaged
-    ? join(app.getAppPath(), 'resources', 'bridge-mcp-server', 'index.js')
+    ? join(getAppBasePath(), 'resources', 'bridge-mcp-server', 'index.js')
     : join(process.cwd(), 'packages', 'bridge-mcp-server', 'dist', 'index.js')
   const bridgeConfigPath = join(sessionPath, '.codex-home', 'bridge-config.json')
 
@@ -324,7 +325,7 @@ async function setupCodexSessionConfig(
   // - Packaged: resources/session-mcp-server/index.js (copied during build)
   // - Dev: packages/session-mcp-server/dist/index.js (built by electron:build:main)
   const sessionServerPath = app.isPackaged
-    ? join(app.getAppPath(), 'resources', 'session-mcp-server', 'index.js')
+    ? join(getAppBasePath(), 'resources', 'session-mcp-server', 'index.js')
     : join(process.cwd(), 'packages', 'session-mcp-server', 'dist', 'index.js')
 
   // Check if bridge server exists - if not, log warning and skip bridge config
@@ -450,7 +451,7 @@ async function setupCopilotBridgeConfig(
  */
 function resolveBridgeServerPath(): { path: string; exists: boolean } {
   const bridgeServerPath = app.isPackaged
-    ? join(app.getAppPath(), 'resources', 'bridge-mcp-server', 'index.js')
+    ? join(getAppBasePath(), 'resources', 'bridge-mcp-server', 'index.js')
     : join(process.cwd(), 'packages', 'bridge-mcp-server', 'dist', 'index.js')
   return { path: bridgeServerPath, exists: existsSync(bridgeServerPath) }
 }
@@ -1229,7 +1230,7 @@ export class SessionManager {
     // Set path to Claude Code executable (cli.js from SDK)
     // In packaged app: use app.getAppPath() (points to app folder, ASAR is disabled)
     // In development: use process.cwd()
-    const basePath = app.isPackaged ? app.getAppPath() : process.cwd()
+    const basePath = app.isPackaged ? getAppBasePath() : process.cwd()
 
     // In monorepos, dependencies may be hoisted to the root node_modules
     // Try local first, then check monorepo root (two levels up from apps/electron)
@@ -2404,7 +2405,7 @@ export class SessionManager {
         // Session MCP server path - provides session-scoped tools (SubmitPlan, config_validate, etc.)
         // Same resolution logic as Codex branch (line ~324)
         const copilotSessionServerPath = app.isPackaged
-          ? join(app.getAppPath(), 'resources', 'session-mcp-server', 'index.js')
+          ? join(getAppBasePath(), 'resources', 'session-mcp-server', 'index.js')
           : join(process.cwd(), 'packages', 'session-mcp-server', 'dist', 'index.js')
         const copilotSessionServerExists = existsSync(copilotSessionServerPath)
         if (!copilotSessionServerExists) {
